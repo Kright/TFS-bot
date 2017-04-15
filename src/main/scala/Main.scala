@@ -1,5 +1,5 @@
 import dispatcher.Dispatcher
-import telegram.{Runner, TelegramAPI}
+import telegram.{Sheduler, TelegramAPI}
 import tinkoff.TinkoffAPI
 
 import scala.io.Source
@@ -14,10 +14,10 @@ object Main extends App {
 
   val dispatcher = new Dispatcher(telegram, tinkoff)
 
-  val runner = Runner(dispatcher.dispatch)
+  Sheduler(dispatcher.dispatch, 1000)
 
   val onExit = scala.io.StdIn.readLine()
 
-  runner.stop()
+  Sheduler.shutdownNow()
   println("bot was stopped")
 }
