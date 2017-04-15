@@ -1,5 +1,5 @@
 import dispatcher.Dispatcher
-import telegram.TelegramAPI
+import telegram.{Runner, TelegramAPI}
 import tinkoff.TinkoffAPI
 
 import scala.io.Source
@@ -14,8 +14,10 @@ object Main extends App {
 
   val dispatcher = new Dispatcher(telegram, tinkoff)
 
-  while (true) {
-    dispatcher.dispatch()
-    Thread.sleep(1000)
-  }
+  val runner = Runner(dispatcher.dispatch)
+
+  val onExit = scala.io.StdIn.readLine()
+
+  runner.stop()
+  println("bot was stopped")
 }
