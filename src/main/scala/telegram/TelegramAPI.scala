@@ -17,7 +17,10 @@ trait TelegramAPI {
 
   def getUpdates(): List[Update]
 
-  def sendMessage(chat_id: Int, reply_to_message_id: Option[Int], text: String, parse_mode: Option[String]): Boolean
+  def sendMessage(chat_id: Int,
+                  text: String,
+                  reply_to_message_id: Option[Int] = None,
+                  parse_mode: Option[String] = None): Boolean
 }
 
 

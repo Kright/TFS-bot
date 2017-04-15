@@ -7,11 +7,11 @@ import tinkoff.{Rate, TinkoffAPI}
 /**
   * Created by lgor on 4/15/17.
   */
-
 class Dispatcher(val telegram: TelegramAPI, val tinkoff: TinkoffAPI) {
 
   def dispatch(): Unit = {
     val updatesList = telegram.getUpdates()
+
     if (updatesList.nonEmpty)
       println(updatesList)
 
@@ -27,7 +27,7 @@ class Dispatcher(val telegram: TelegramAPI, val tinkoff: TinkoffAPI) {
         filter(cmd => cmd == "/r" || cmd == "/rates").
         foreach { cmd =>
           val rates = getFormattedRates(tinkoff.getRates())
-          telegram.sendMessage(message.chat.id, None, rates, Some("HTML"))
+          telegram.sendMessage(message.chat.id, rates, parse_mode = Option("HTML"))
         }
 
       //TODO: Here could be your implementation of help, history and balance commandF

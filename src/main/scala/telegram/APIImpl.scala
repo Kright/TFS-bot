@@ -31,7 +31,7 @@ class APIImpl(val token: String) extends TelegramAPI {
     updatesList
   }
 
-  override def sendMessage(chat_id: Int, reply_to_message_id: Option[Int], text: String, parse_mode: Option[String]): Boolean = {
+  override def sendMessage(chat_id: Int, text: String, reply_to_message_id: Option[Int], parse_mode: Option[String]): Boolean = {
     var sendRequest = Http(botURL + "/sendMessage").method("POST")
 
     def addParam(key: String)(value: Any): Unit = sendRequest = sendRequest.param(key, value.toString)

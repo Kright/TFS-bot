@@ -18,5 +18,4 @@ object Main extends App {
     dispatcher.dispatch()
     Thread.sleep(1000)
   }
-
 }
