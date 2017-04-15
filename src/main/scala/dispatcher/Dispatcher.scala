@@ -1,8 +1,8 @@
 package dispatcher
 
-import scala.io.Source
+import telegram.TelegramAPI
 
-import telegram.API._
+import scala.io.Source
 import tinkoff.API._
 
 /**
@@ -18,10 +18,10 @@ object Dispatcher extends App {
       textRatesList.mkString("\n") + "</pre>"
   }
 
-  setToken(Source.fromFile("TelegramBotToken").getLines.mkString)
+  val telegram = TelegramAPI(Source.fromFile("TelegramBotToken").getLines.mkString)
 
   while (true) {
-    val updatesList = getUpdates()
+    val updatesList = telegram.getUpdates()
     if (updatesList.nonEmpty)
       println(updatesList)
 
@@ -37,7 +37,7 @@ object Dispatcher extends App {
         filter(cmd => cmd == "/r" || cmd == "/rates").
         foreach { cmd =>
           val rates = getFormattedRates(getRates())
-          sendMessage(message.chat.id, None, rates, Some("HTML"))
+          telegram.sendMessage(message.chat.id, None, rates, Some("HTML"))
         }
 
       //TODO: Here could be your implementation of help, history and balance command
