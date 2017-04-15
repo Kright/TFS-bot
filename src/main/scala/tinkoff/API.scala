@@ -9,20 +9,7 @@ import scalaj.http._
   *
   * TODO: Need to handle all the exceptions from Http library.
   */
-object API {
-
-  implicit val formats = DefaultFormats
-
-  case class Currency(code: Int, name: String)
-  case class Rate(
-      category: String,
-      fromCurrency: Currency,
-      toCurrency: Currency,
-      buy: Double,
-      sell: Option[Double])
-  case class LastUpdate(milliseconds: Long)
-  case class Payload(lastUpdate: LastUpdate, rates: List[Rate])
-  case class Response(resultCode: String, payload: Payload)
+trait TinkoffAPI {
 
   def authorizeAccount() = ???
 
@@ -30,13 +17,36 @@ object API {
 
   def getHistory() = ???
 
-  def getRates(): List[Rate] = {
-    val json = Http("https://www.tinkoff.ru/api/v1/currency_rates").asString
-    val response = parse(json.body).extract[Response]
+  def getRates(): List[Rate]
+}
 
-    //TODO: Exception raising in case of error (response.resultCode != "OK")
+object TinkoffAPI {
 
-    //(jusual): I don't know which category I should use, so I picked a random one.
-    response.payload.rates.filter(x => x.category == "DepositPayments" && x.toCurrency.name == "RUB")
+  def apply() = new TinkoffAPI {
+    implicit val formats = DefaultFormats
+
+    override def getRates() = {
+      val json = Http("https://www.tinkoff.ru/api/v1/currency_rates").asString
+      val response = parse(json.body).extract[Response]
+
+      assert(response.resultCode == "OK")
+
+      //(jusual): I don't know which category I should use, so I picked a random one.
+      response.payload.rates.filter(x => x.category == "DepositPayments" && x.toCurrency.name == "RUB")
+    }
   }
 }
+
+case class Currency(code: Int, name: String)
+
+case class LastUpdate(milliseconds: Long)
+
+case class Payload(lastUpdate: LastUpdate, rates: List[Rate])
+
+case class Response(resultCode: String, payload: Payload)
+
+case class Rate(category: String,
+                fromCurrency: Currency,
+                toCurrency: Currency,
+                buy: Double,
+                sell: Option[Double])

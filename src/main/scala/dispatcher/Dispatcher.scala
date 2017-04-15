@@ -2,25 +2,15 @@ package dispatcher
 
 import telegram.TelegramAPI
 
-import scala.io.Source
-import tinkoff.API._
+import tinkoff.{Rate, TinkoffAPI}
 
 /**
-  * Main polling loop.
+  * Created by lgor on 4/15/17.
   */
-object Dispatcher extends App {
 
-  def getFormattedRates(rates: List[Rate]): String = {
-    val textRatesList = rates.map(x => "%3s: %7.3f  %7.3f".format(x.fromCurrency.name, x.buy, x.sell.get))
-    "<pre>" +
-      "       Buy      Sell\n" +
-      "      ------   ------\n" +
-      textRatesList.mkString("\n") + "</pre>"
-  }
+class Dispatcher(val telegram: TelegramAPI, val tinkoff: TinkoffAPI) {
 
-  val telegram = TelegramAPI(Source.fromFile("TelegramBotToken").getLines.mkString)
-
-  while (true) {
+  def dispatch(): Unit = {
     val updatesList = telegram.getUpdates()
     if (updatesList.nonEmpty)
       println(updatesList)
@@ -36,12 +26,21 @@ object Dispatcher extends App {
         map(_.substring(entity.offset, entity.offset + entity.length)).
         filter(cmd => cmd == "/r" || cmd == "/rates").
         foreach { cmd =>
-          val rates = getFormattedRates(getRates())
+          val rates = getFormattedRates(tinkoff.getRates())
           telegram.sendMessage(message.chat.id, None, rates, Some("HTML"))
         }
 
-      //TODO: Here could be your implementation of help, history and balance command
+      //TODO: Here could be your implementation of help, history and balance commandF
     }
-    Thread.sleep(1000)
+  }
+
+  private def getFormattedRates(rates: List[Rate]): String = {
+    val text = rates.map(x => "%3s: %7.3f  %7.3f".format(x.fromCurrency.name, x.buy, x.sell.get)).mkString("\n")
+
+    "<pre>" +
+      s"""       Buy      Sell
+         |      ------   ------
+         |$text</pre>
+      """.stripMargin
   }
 }
