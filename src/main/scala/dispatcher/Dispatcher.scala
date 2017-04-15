@@ -25,20 +25,22 @@ object Dispatcher extends App {
     if (updatesList.nonEmpty)
       println(updatesList)
 
-    for (update <- updatesList; if update.message.isDefined; message = update.message.get) {
-        if (message.entities.isDefined)
-          for (entity <- message.entities.get if entity.`type` == "bot_command") {
-            // (jusual): message.text is defined because text contains name of bot_command
-            val command = message.text.get.substring(entity.offset, entity.offset + entity.length)
+    for (update <- updatesList;
+         message <- update.message;
+         msgEntities <- message.entities;
+         entity <- msgEntities if entity.`type` == "bot_command"
+    ) {
+      // (jusual): message.text is defined because text contains name of bot_command
 
-            if (command == "/r" || command == "/rates") {
-              val rates = getFormattedRates(getRates())
-              sendMessage(message.chat.id, None, rates, Some("HTML"))
-            }
+      message.text.
+        map(_.substring(entity.offset, entity.offset + entity.length)).
+        filter(cmd => cmd == "/r" || cmd == "/rates").
+        foreach { cmd =>
+          val rates = getFormattedRates(getRates())
+          sendMessage(message.chat.id, None, rates, Some("HTML"))
+        }
 
-            //TODO: Here could be your implementation of help, history and balance command
-
-          }
+      //TODO: Here could be your implementation of help, history and balance command
     }
     Thread.sleep(1000)
   }
