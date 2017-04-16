@@ -13,16 +13,8 @@ class Dispatcher(val telegram: TelegramAPI, val tinkoff: TinkoffAPI) {
 
     for (update <- updatesList;
          message <- update.message;
-         msgEntities <- message.entities;
-         entity <- msgEntities if entity.`type` == "bot_command"
-    ) {
-      // (jusual): message.text is defined because text contains name of bot_command
-
-      message.text.
-        map(_.substring(entity.offset, entity.offset + entity.length)).
-        foreach(cmd => processCommand(cmd, message))
-
-      //TODO: Here could be your implementation of help, history and balance commandF
+         command <- message.entity("bot_command")) {
+      processCommand(command, message)
     }
   }
 

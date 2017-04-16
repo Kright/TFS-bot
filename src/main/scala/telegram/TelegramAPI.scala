@@ -43,7 +43,16 @@ case class Message(message_id: Int,
                    date: Int,
                    chat: Chat,
                    text: Option[String],
-                   entities: Option[List[MessageEntity]])
+                   entities: Option[List[MessageEntity]]) {
+
+  def entity(typeName: String): Option[String] = {
+    for (txt <- text;
+         entity <- entities.flatMap(_.find(_.`type` == typeName)))
+      return Option(txt.substring(entity.offset, entity.offset + entity.length))
+
+    None
+  }
+}
 
 case class Chat(id: Int, `type`: String,
                 username: Option[String],
