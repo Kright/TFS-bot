@@ -20,11 +20,16 @@ class Dispatcher(val telegram: TelegramAPI, val tinkoff: TinkoffAPI) {
 
   private def processCommand(cmd: String, msg: Message): Unit = cmd match {
     case "/r" | "/rates" => sendRates(msg)
+    case _ => sendCommandUnknown(cmd, msg)
   }
 
-  private def sendRates(message: Message): Unit = {
+  private def sendCommandUnknown(cmd: String, msg: Message): Unit = {
+    telegram.sendMessage(msg.chat.id, s"unknown command : $cmd", parse_mode = Option("HTML"))
+  }
+
+  private def sendRates(msg: Message): Unit = {
     val rates = getFormattedRates(tinkoff.getRates())
-    telegram.sendMessage(message.chat.id, rates, parse_mode = Option("HTML"))
+    telegram.sendMessage(msg.chat.id, rates, parse_mode = Option("HTML"))
   }
 
   private def getFormattedRates(rates: List[Rate]): String = {
