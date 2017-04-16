@@ -12,9 +12,6 @@ class Dispatcher(val telegram: TelegramAPI, val tinkoff: TinkoffAPI) {
   def dispatch(): Unit = {
     val updatesList = telegram.getUpdates()
 
-    if (updatesList.nonEmpty)
-      println(updatesList)
-
     for (update <- updatesList;
          message <- update.message;
          msgEntities <- message.entities;

@@ -26,7 +26,7 @@ trait TelegramAPI {
 
 object TelegramAPI {
 
-  def apply(token: String): TelegramAPI = new APIImpl(token)
+  def apply(token: String): TelegramAPI = new APIImpl(token) with Logging
 }
 
 
