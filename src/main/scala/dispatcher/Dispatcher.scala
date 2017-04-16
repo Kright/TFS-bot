@@ -1,7 +1,6 @@
 package dispatcher
 
-import telegram.TelegramAPI
-
+import telegram.{Message, TelegramAPI}
 import tinkoff.{Rate, TinkoffAPI}
 
 /**
@@ -21,14 +20,19 @@ class Dispatcher(val telegram: TelegramAPI, val tinkoff: TinkoffAPI) {
 
       message.text.
         map(_.substring(entity.offset, entity.offset + entity.length)).
-        filter(cmd => cmd == "/r" || cmd == "/rates").
-        foreach { cmd =>
-          val rates = getFormattedRates(tinkoff.getRates())
-          telegram.sendMessage(message.chat.id, rates, parse_mode = Option("HTML"))
-        }
+        foreach(cmd => processCommand(cmd, message))
 
       //TODO: Here could be your implementation of help, history and balance commandF
     }
+  }
+
+  private def processCommand(cmd: String, msg: Message): Unit = cmd match {
+    case "/r" | "/rates" => sendRates(msg)
+  }
+
+  private def sendRates(message: Message): Unit = {
+    val rates = getFormattedRates(tinkoff.getRates())
+    telegram.sendMessage(message.chat.id, rates, parse_mode = Option("HTML"))
   }
 
   private def getFormattedRates(rates: List[Rate]): String = {
