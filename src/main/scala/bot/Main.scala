@@ -16,8 +16,6 @@ object Main extends App {
 
   val dispatcher = new Dispatcher(telegram, tinkoff)
 
-  dispatcher.dispatch(60)
-
   Sheduler(() => dispatcher.dispatch(60))
 
   val onExit = scala.io.StdIn.readLine()
