@@ -1,6 +1,8 @@
-import dispatcher.{Dispatcher, Sheduler}
-import telegram.TelegramBot
-import tinkoff.TinkoffAPI
+package bot
+
+import bot.dispatcher.{Dispatcher, Sheduler}
+import bot.telegram.TelegramBot
+import bot.tinkoff.TinkoffAPI
 
 import scala.io.Source
 

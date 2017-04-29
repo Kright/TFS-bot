@@ -1,7 +1,9 @@
-package telegram
+package bot.telegram
 
+import bot.telegram.api._
 import org.json4s._
 import org.json4s.native.JsonMethods._
+
 import scalaj.http._
 
 /**
@@ -11,7 +13,7 @@ import scalaj.http._
   */
 class APIImpl(val token: String) extends TelegramBot {
 
-  override val baseURL: String = "https://api.telegram.org/"
+  override val baseURL: String = "https://api.bot.telegram.org/"
   override val botURL: String = baseURL + "bot" + token
 
   private var updateRequest: HttpRequest = Http(botURL + "/getUpdates")

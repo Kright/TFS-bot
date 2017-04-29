@@ -1,7 +1,8 @@
-package dispatcher
+package bot.dispatcher
 
-import telegram.{Message, TelegramBot}
-import tinkoff.{Rate, TinkoffAPI}
+import bot.telegram.TelegramBot
+import bot.telegram.api._
+import bot.tinkoff.{Rate, TinkoffAPI}
 
 /**
   * Created by lgor on 4/15/17.

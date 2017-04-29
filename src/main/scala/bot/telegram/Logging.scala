@@ -1,4 +1,6 @@
-package telegram
+package bot.telegram
+
+import bot.telegram.api.Update
 
 /**
   * Created by lgor on 4/16/17.

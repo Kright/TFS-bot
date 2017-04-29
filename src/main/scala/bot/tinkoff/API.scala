@@ -1,11 +1,11 @@
-package tinkoff
+package bot.tinkoff
 
 import org.json4s._
 import org.json4s.native.JsonMethods._
 import scalaj.http._
 
 /**
-  * Implementation of tinkoff API
+  * Implementation of bot.tinkoff API
   *
   * TODO: Need to handle all the exceptions from Http library.
   */
@@ -26,7 +26,7 @@ object TinkoffAPI {
     implicit val formats = DefaultFormats
 
     override def getRates() = {
-      val json = Http("https://www.tinkoff.ru/api/v1/currency_rates").asString
+      val json = Http("https://www.bot.tinkoff.ru/api/v1/currency_rates").asString
       val response = parse(json.body).extract[Response]
 
       assert(response.resultCode == "OK")

@@ -1,4 +1,4 @@
-package dispatcher
+package bot.dispatcher
 
 import java.util.concurrent.{Executors, TimeUnit}
 
