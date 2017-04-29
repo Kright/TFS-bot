@@ -9,7 +9,7 @@ import scalaj.http._
   *
   * TODO: Need to handle all the exceptions from Http library.
   */
-class APIImpl(val token: String) extends TelegramAPI {
+class APIImpl(val token: String) extends TelegramBot {
 
   override val baseURL: String = "https://api.telegram.org/"
   override val botURL: String = baseURL + "bot" + token

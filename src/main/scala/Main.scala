@@ -1,5 +1,5 @@
 import dispatcher.{Dispatcher, Sheduler}
-import telegram.TelegramAPI
+import telegram.TelegramBot
 import tinkoff.TinkoffAPI
 
 import scala.io.Source
@@ -9,7 +9,7 @@ import scala.io.Source
   */
 object Main extends App {
 
-  val telegram = TelegramAPI(Source.fromFile("TelegramBotToken").getLines.mkString)
+  val telegram = TelegramBot(Source.fromFile("TelegramBotToken").getLines.mkString)
   val tinkoff = TinkoffAPI()
 
   val dispatcher = new Dispatcher(telegram, tinkoff)

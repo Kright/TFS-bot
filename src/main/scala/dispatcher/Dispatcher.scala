@@ -1,12 +1,12 @@
 package dispatcher
 
-import telegram.{Message, TelegramAPI}
+import telegram.{Message, TelegramBot}
 import tinkoff.{Rate, TinkoffAPI}
 
 /**
   * Created by lgor on 4/15/17.
   */
-class Dispatcher(val telegram: TelegramAPI, val tinkoff: TinkoffAPI) {
+class Dispatcher(val telegram: TelegramBot, val tinkoff: TinkoffAPI) {
 
   def dispatch(): Unit = {
     val updatesList = telegram.getUpdates()

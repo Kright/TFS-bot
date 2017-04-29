@@ -3,7 +3,7 @@ package telegram
 /**
   * Created by lgor on 4/16/17.
   */
-trait Logging extends TelegramAPI {
+trait Logging extends TelegramBot {
 
   abstract override def getUpdates(): List[Update] = {
     val upds: List[Update] = super.getUpdates()
