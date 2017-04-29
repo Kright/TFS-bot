@@ -26,7 +26,7 @@ object TinkoffAPI {
     implicit val formats = DefaultFormats
 
     override def getRates() = {
-      val json = Http("https://www.bot.tinkoff.ru/api/v1/currency_rates").asString
+      val json = Http("https://www.tinkoff.ru/api/v1/currency_rates").asString
       val response = parse(json.body).extract[Response]
 
       assert(response.resultCode == "OK")

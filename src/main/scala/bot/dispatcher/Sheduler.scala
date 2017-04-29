@@ -9,22 +9,31 @@ import scala.util.{Failure, Success, Try}
   */
 object Sheduler {
 
-  private val executor = Executors.newScheduledThreadPool(1)
+  @volatile
+  private var running: Boolean = true
 
-  def apply(task: () => Unit, intervalMs: Long = 1000): Unit = {
+  private val executor = Executors.newCachedThreadPool()
+
+  def apply(task: () => Unit): Unit = {
 
     val runnable = new Runnable {
       override def run(): Unit = {
 
-        Try(task()) match {
-          case Failure(ex) => Console.err.println(s"Sheduler catched error : $ex")
-          case _ => Unit
+        while (running) {
+          Try(task()) match {
+            case Failure(ex) => Console.err.println(s"Sheduler catched error : $ex")
+            case _ => Unit
+          }
+          Thread.sleep(1000)
         }
       }
     }
 
-    executor.scheduleAtFixedRate(runnable, 0, intervalMs, TimeUnit.MILLISECONDS)
+    executor.submit(runnable)
   }
 
-  def shutdownNow(): Unit = executor.shutdownNow()
+  def shutdownNow(): Unit = {
+    running = false
+    executor.shutdownNow()
+  }
 }

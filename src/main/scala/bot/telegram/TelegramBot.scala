@@ -1,7 +1,6 @@
 package bot.telegram
 
-import bot.telegram.api.Update
-import org.json4s._
+import bot.telegram.api.{SendResult, Update}
 
 /**
   * Implementation of bot.telegram bot API.
@@ -10,24 +9,34 @@ import org.json4s._
 
 trait TelegramBot {
 
-  implicit val formats = DefaultFormats
-
   val token: String
-  val baseURL: String
-  val botURL: String
 
-  def getUpdates(): List[Update]
+  def requestUpdates(timeoutInSeconds: Int = 0): List[Update]
 
-  def sendMessage(chat_id: Int,
+  def sendMessage(chatId: String,
                   text: String,
-                  reply_to_message_id: Option[Int] = None,
-                  parse_mode: Option[String] = None): Boolean
-}
+                  parseMode: Option[String] = None,
+                  disableWebPagePreview: Boolean = false,
+                  disableNotification: Boolean = false,
+                  replyMessageId: Option[Int] = None,
+                  replyMarkup: Option[String] = None): SendResult
 
+  def sendSticker(chatId: String,
+                  fileId: String,
+                  disableNotification: Boolean = false,
+                  replyMessageId: Option[Int] = None,
+                  replyMarkup: Option[String] = None): SendResult
+
+  def sendMessage(chatId: Long, text: String): SendResult = sendMessage(chatId.toString, text)
+
+  def url: String = s"https://api.telegram.org/bot$token"
+}
 
 object TelegramBot {
 
-  def apply(token: String): TelegramBot = new APIImpl(token) with Logging
+  sealed trait ParseMode
+
+  def apply(token: String): TelegramBot = new BotImpl(token) with Logging
 }
 
 

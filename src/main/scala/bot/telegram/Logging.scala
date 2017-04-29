@@ -1,23 +1,40 @@
 package bot.telegram
 
-import bot.telegram.api.Update
+import bot.telegram.api.{SendFailed, SendResult}
 
 /**
   * Created by lgor on 4/16/17.
   */
 trait Logging extends TelegramBot {
 
-  abstract override def getUpdates(): List[Update] = {
-    val upds: List[Update] = super.getUpdates()
+  abstract override def sendMessage(chatId: String,
+                                    text: String,
+                                    parseMode: Option[String],
+                                    disableWebPagePreview: Boolean,
+                                    disableNotification: Boolean,
+                                    replyMessageId: Option[Int],
+                                    replyMarkup: Option[String]): SendResult = {
+    println(s"send message : $text")
+    val result = super.sendMessage(chatId, text, parseMode, disableWebPagePreview, disableNotification, replyMessageId, replyMarkup)
+    log(result)
 
-    if (upds.nonEmpty)
-      println(s"getUpdates: \n${upds.mkString("\n")}")
-
-    upds
+    result
   }
 
-  abstract override def sendMessage(chat_id: Int, text: String, reply_to_message_id: Option[Int], parse_mode: Option[String]): Boolean = {
-    println(s"send message($chat_id, $text, $reply_to_message_id, $parse_mode)")
-    super.sendMessage(chat_id, text, reply_to_message_id, parse_mode)
+  abstract override def sendSticker(chatId: String,
+                                    fileId: String,
+                                    disableNotification: Boolean,
+                                    replyMessageId: Option[Int],
+                                    replyMarkup: Option[String]): SendResult = {
+    println(s"send sticker")
+    val result = super.sendSticker(chatId, fileId, disableNotification, replyMessageId, replyMarkup)
+    log(result)
+
+    result
+  }
+
+  private def log(sr: SendResult): Unit = sr match {
+    case SendFailed(response) => println(s"sending failed: $response")
+    case _ => Unit
   }
 }
