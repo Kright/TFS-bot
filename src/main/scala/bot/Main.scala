@@ -23,5 +23,5 @@ object Main extends App {
   val onExit = scala.io.StdIn.readLine()
 
   Sheduler.shutdownNow()
-  println("bot was stopped")
+  println("bot will be stopped")
 }
