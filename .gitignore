@@ -6,3 +6,4 @@ target
 *.iws
 .idea
 out
+TelegramBotToken
