@@ -36,7 +36,7 @@ object TelegramBot {
 
   sealed trait ParseMode
 
-  def apply(token: String): TelegramBot = new BotImpl(token) with Logging
+  def apply(token: String): TelegramBot = new TelegramBotImpl(token) with Logging
 }
 
 

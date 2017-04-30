@@ -9,7 +9,7 @@ import scalaj.http.Http
 /**
   * Created by lgor on 4/27/17.
   */
-class BotImpl(val token: String) extends TelegramBot {
+class TelegramBotImpl(val token: String) extends TelegramBot {
 
   var lastUpdatedId: Int = -1
 
@@ -20,6 +20,7 @@ class BotImpl(val token: String) extends TelegramBot {
   implicit val formats = DefaultFormats
 
   override def requestUpdates(timeoutSeconds: Int = 0): List[Update] = {
+
     var request = httpUpdate
 
     if (timeoutSeconds != 0) {
@@ -28,20 +29,22 @@ class BotImpl(val token: String) extends TelegramBot {
         param("timeout", timeoutSeconds.toString)
     }
 
-    if (lastUpdatedId != -1)
-      request = request.param("offset", s"${lastUpdatedId + 1}")
+    synchronized {
+      if (lastUpdatedId != -1)
+        request = request.param("offset", s"${lastUpdatedId + 1}")
 
-    val result = request.asString
-    val response = parse(result.body).extract[api.Response]
+      val result = request.asString
+      val response = parse(result.body).extract[api.Response]
 
-    assert(response.ok, response)
+      assert(response.ok, response)
 
-    val updates = response.result.getOrElse(List.empty)
+      val updates = response.result.getOrElse(List.empty)
 
-    if (updates.nonEmpty)
-      lastUpdatedId = updates.map(_.update_id).max
+      if (updates.nonEmpty)
+        lastUpdatedId = updates.map(_.update_id).max
 
-    updates
+      updates
+    }
   }
 
   override def sendMessage(chatId: String,

@@ -6,9 +6,15 @@ package bot
 object Implicits {
 
   implicit class OptionStringBuilder(val s: StringBuilder) extends AnyVal {
-    def push[T](name: String, option: Option[T]): Unit = option.foreach(o => s.append(s", $name = $o"))
+    def push[T](name: String, option: Option[T]): StringBuilder = {
+      option.foreach(o => s.append(s", $name = $o"))
+      s
+    }
 
-    def push[T](option: Option[T]): Unit = option.foreach(o => s.append(s", $o"))
+    def push[T](option: Option[T]): StringBuilder = {
+      option.foreach(o => s.append(s", $o"))
+      s
+    }
   }
 
 }
