@@ -43,6 +43,8 @@ class TelegramBotImpl(val token: String) extends TelegramBot {
       if (updates.nonEmpty)
         lastUpdatedId = updates.map(_.update_id).max
 
+      assert(updates.forall(u => u.message.forall(_.isValid)))
+
       updates
     }
   }

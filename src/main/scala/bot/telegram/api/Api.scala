@@ -26,6 +26,19 @@ case class Message(message_id: Int,
                    entities: Option[List[MessageEntity]],
                    sticker: Option[Sticker]) {
 
+  def isValid: Boolean = {
+    if (entities.isEmpty)
+      return true
+
+    if (text.isEmpty)
+      return false
+
+    val ents = entities.get
+    val txt = text.get
+
+    ents.forall(e => e.length + e.offset <= txt.size)
+  }
+
   def getEntities(typeName: String): List[MessageEntity] = {
     for (txt <- text;
          ents <- entities) {
