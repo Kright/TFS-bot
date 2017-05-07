@@ -41,11 +41,9 @@ case class Message(message_id: Int,
 
   def getEntities(typeName: String): List[MessageEntity] = {
     for (txt <- text;
-         ents <- entities) {
-      return ents.filter(_.`type` == typeName)
-    }
-    List.empty
-  }
+         ents <- entities)
+      yield ents.filter(_.`type` == typeName)
+  }.getOrElse(List.empty)
 
   def asText(e: MessageEntity): String = {
     assert(text.isDefined)
