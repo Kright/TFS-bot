@@ -14,6 +14,7 @@ trait TelegramBot {
 
   def apply(sendData: SendData): SendResult
 
+  @deprecated("Use bot(SendMessage(params ...)) instead", "08-05-2017")
   def sendMessage(chatId: String,
                   text: String,
                   parseMode: Option[String] = None,
@@ -23,7 +24,7 @@ trait TelegramBot {
                   replyMarkup: Option[String] = None): SendResult =
     this (SendMessage(chatId, text, parseMode, disableWebPagePreview, disableNotification, replyMessageId, replyMarkup))
 
-
+  @deprecated("Use bot(SendSticker(params ...)) instead", "08-05-2017")
   def sendSticker(chatId: String,
                   fileId: String,
                   disableNotification: Boolean = false,
