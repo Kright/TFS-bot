@@ -1,5 +1,7 @@
 package bot.telegram.api
 
+import scala.util.{Failure, Success, Try}
+
 /**
   * Created by lgor on 5/7/17.
   */
@@ -9,10 +11,18 @@ case object SendSuccess extends SendResult
 
 case class SendFailed(reason: Response) extends SendResult
 
+case class SendError(ex: Throwable) extends SendResult
+
 object SendResult {
-  def apply(response: Response): SendResult =
-    if (response.ok)
-      SendSuccess
-    else
-      SendFailed(response)
+  def apply(response: => Response): SendResult =
+    Try {
+      if (response.ok) {
+        SendSuccess
+      } else {
+        SendFailed(response)
+      }
+    } match {
+      case Success(sendResult) => sendResult
+      case Failure(error) => SendError(error)
+    }
 }

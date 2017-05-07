@@ -1,6 +1,6 @@
 package bot.telegram
 
-import bot.telegram.api.{SendData, SendFailed, SendResult}
+import bot.telegram.api._
 
 /**
   * Created by lgor on 4/16/17.
@@ -17,6 +17,7 @@ trait Logging extends TelegramBot {
 
   private def log(sr: SendResult): Unit = sr match {
     case SendFailed(response) => println(s"sending failed: $response")
-    case _ => Unit
+    case SendError(ex) => println(s"sending exception: $ex")
+    case SendSuccess =>
   }
 }

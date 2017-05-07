@@ -14,10 +14,16 @@ class TelegramBotImpl(val token: String) extends TelegramBot {
   var lastUpdatedId: Int = -1
 
   val httpUpdate = Http(s"$url/getUpdates")
-  val httpSendMessage = Http(s"$url/sendMessage").method("POST")
-  val httpSendSticker = Http(s"$url/sendSticker").method("POST")
 
   implicit val formats = DefaultFormats
+
+  override def apply(sendData: SendData): SendResult = {
+    val httpRequest = sendData.putInto(Http(s"$url/${sendData.methodName}").method("POST"))
+
+    SendResult {
+      parse(httpRequest.asString.body).extract[api.Response]
+    }
+  }
 
   override def requestUpdates(timeoutSeconds: Int = 0): List[Update] = {
 
@@ -47,15 +53,6 @@ class TelegramBotImpl(val token: String) extends TelegramBot {
 
       updates
     }
-  }
-
-  override def apply(sendData: SendData): SendResult = {
-    val httpRequest = sendData.putInto(Http(s"$url/${sendData.methodName}").method("POST"))
-
-    val sendResult = httpRequest.asString
-    val response = parse(sendResult.body).extract[api.Response]
-
-    SendResult(response)
   }
 }
 
