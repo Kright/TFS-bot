@@ -1,4 +1,4 @@
-package tinkoff
+package bot.tinkoff
 
 /**
   * Created by lgor on 4/15/17.

@@ -1,19 +1,20 @@
-package dispatcher
+package bot.dispatcher
 
-import telegram.{Message, TelegramAPI}
-import tinkoff.{Rate, TinkoffAPI}
+import bot.telegram.TelegramBot
+import bot.telegram.api._
+import bot.tinkoff.{Rate, TinkoffAPI}
 
 /**
   * Created by lgor on 4/15/17.
   */
-class Dispatcher(val telegram: TelegramAPI, val tinkoff: TinkoffAPI) {
+class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
 
-  def dispatch(): Unit = {
-    val updatesList = telegram.getUpdates()
+  def dispatch(timeoutSeconds: Int = 0): Unit = {
+    val updatesList = bot.requestUpdates(timeoutSeconds)
 
     for (update <- updatesList;
          message <- update.message;
-         command <- message.entity("bot_command")) {
+         command <- message.botCommands) {
       processCommand(command, message)
     }
   }
@@ -24,12 +25,12 @@ class Dispatcher(val telegram: TelegramAPI, val tinkoff: TinkoffAPI) {
   }
 
   private def sendCommandUnknown(cmd: String, msg: Message): Unit = {
-    telegram.sendMessage(msg.chat.id, s"unknown command : $cmd", parse_mode = Option("HTML"))
+    bot.sendMessage(msg.chat.id.toString, s"unknown command : $cmd", parseMode = Option("HTML"))
   }
 
   private def sendRates(msg: Message): Unit = {
     val rates = getFormattedRates(tinkoff.getRates())
-    telegram.sendMessage(msg.chat.id, rates, parse_mode = Option("HTML"))
+    bot.sendMessage(msg.chat.id.toString, rates, parseMode = Option("HTML"))
   }
 
   private def getFormattedRates(rates: List[Rate]): String = {

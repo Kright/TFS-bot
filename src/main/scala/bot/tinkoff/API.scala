@@ -1,11 +1,11 @@
-package tinkoff
+package bot.tinkoff
 
 import org.json4s._
 import org.json4s.native.JsonMethods._
 import scalaj.http._
 
 /**
-  * Implementation of tinkoff API
+  * Implementation of bot.tinkoff API
   *
   * TODO: Need to handle all the exceptions from Http library.
   */
