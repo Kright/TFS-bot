@@ -25,7 +25,7 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
   }
 
   private def sendCommandUnknown(cmd: String, msg: Message): Unit = {
-    bot(SendMessage(msg.chat.id.toString, s"unknown command : $cmd", parseMode = Option("HTML")))
+    bot(msg.chat.sendMessage withText s"unknown command : $cmd")
   }
 
   private def sendRates(msg: Message): Unit = {

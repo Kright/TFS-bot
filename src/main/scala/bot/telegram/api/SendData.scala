@@ -14,11 +14,13 @@ sealed trait SendData {
 
 case class SendMessage(chatId: String,
                        text: String,
-                       parseMode: Option[String],
+                       parseMode: Option[String] = None,
                        disableWebPagePreview: Boolean = false,
                        disableNotification: Boolean = false,
                        replyMessageId: Option[Int] = None,
                        replyMarkup: Option[String] = None) extends SendData {
+
+  def withText(newText: String): SendMessage = this.copy(text = newText)
 
   override def putInto(httpRequest: HttpRequest): HttpRequest = {
     var sendRequest = httpRequest
