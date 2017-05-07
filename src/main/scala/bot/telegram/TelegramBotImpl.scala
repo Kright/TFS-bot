@@ -1,6 +1,6 @@
 package bot.telegram
 
-import bot.telegram.api.{SendResult, Update}
+import bot.telegram.api._
 import org.json4s.DefaultFormats
 import org.json4s.native.JsonMethods.parse
 
@@ -49,44 +49,10 @@ class TelegramBotImpl(val token: String) extends TelegramBot {
     }
   }
 
-  override def sendMessage(chatId: String,
-                           text: String,
-                           parseMode: Option[String],
-                           disableWebPagePreview: Boolean,
-                           disableNotification: Boolean,
-                           replyMessageId: Option[Int],
-                           replyMarkup: Option[String]): SendResult = {
+  override def apply(sendData: SendData): SendResult = {
+    val httpRequest = sendData.putInto(Http(s"$url/${sendData.methodName}").method("POST"))
 
-    var sendRequest = httpSendMessage
-
-    def addParam(key: String)(value: Any): Unit = sendRequest = sendRequest.param(key, value.toString)
-
-    addParam("chat_id")(chatId)
-    addParam("text")(text)
-    parseMode.foreach(addParam("parse_mode"))
-    if (disableWebPagePreview) addParam("disable_web_page_preview")(disableWebPagePreview)
-    if (disableNotification) addParam("disable_notification")(disableNotification)
-    replyMessageId.foreach(addParam("reply_to_message_id"))
-    replyMarkup.foreach(addParam("reply_markup"))
-
-    val sendResult = sendRequest.asString
-    val response = parse(sendResult.body).extract[api.Response]
-
-    SendResult(response)
-  }
-
-  override def sendSticker(chatId: String, fileId: String, disableNotification: Boolean, replyMessageId: Option[Int], replyMarkup: Option[String]): SendResult = {
-    var sendRequest = httpSendSticker
-
-    def addParam(key: String)(value: Any): Unit = sendRequest = sendRequest.param(key, value.toString)
-
-    addParam("chat_id")(chatId)
-    addParam("sticker")(fileId)
-    if (disableNotification) addParam("disable_notification")(disableNotification)
-    replyMessageId.foreach(addParam("reply_to_message_id"))
-    replyMarkup.foreach(addParam("reply_markup"))
-
-    val sendResult = sendRequest.asString
+    val sendResult = httpRequest.asString
     val response = parse(sendResult.body).extract[api.Response]
 
     SendResult(response)

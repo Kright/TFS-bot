@@ -126,18 +126,3 @@ case class Sticker(file_id: String, width: Integer, height: Integer)
 
 
 case class Response(ok: Boolean, description: Option[String], result: Option[List[Update]])
-
-
-sealed trait SendResult
-
-case object SendSuccess extends SendResult
-
-case class SendFailed(reason: Response) extends SendResult
-
-object SendResult {
-  def apply(response: Response): SendResult =
-    if (response.ok)
-      SendSuccess
-    else
-      SendFailed(response)
-}
