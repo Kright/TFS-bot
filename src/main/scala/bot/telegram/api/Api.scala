@@ -1,15 +1,17 @@
 package bot.telegram.api
 
 import bot.Implicits._
+import org.json4s.native.Serialization.write
 
 // https://core.telegram.org/bots/api#update
 // not fully implemented
-case class Update(update_id: Int, message: Option[Message]) {
+case class Update(update_id: Int, message: Option[Message], callback_query: Option[CallbackQuery]) {
   override def toString: String = {
     val sb = new StringBuilder
 
     sb.append(s"Update($update_id")
     sb.push(message)
+    sb.push(callback_query)
     sb.append(")")
 
     sb.toString
@@ -24,7 +26,8 @@ case class Message(message_id: Int,
                    chat: Chat,
                    text: Option[String],
                    entities: Option[List[MessageEntity]],
-                   sticker: Option[Sticker]) {
+                   sticker: Option[Sticker],
+                   contact: Option[Contact]) {
 
   def isValid: Boolean = {
     if (entities.isEmpty)
@@ -128,3 +131,28 @@ case class Sticker(file_id: String, width: Integer, height: Integer)
 
 
 case class Response(ok: Boolean, description: Option[String], result: Option[List[Update]])
+
+case class Contact(phone_number: String, first_name: String, user_id: Int)
+
+case class KeyboardButton(text: String, request_contact: Boolean)
+
+trait KeyboardMarkup {
+  implicit val formats = org.json4s.DefaultFormats
+  override def toString: String = write(this)
+}
+
+case class ReplyKeyboardMarkup(keyboard: List[List[KeyboardButton]], resize_keyboard: Boolean = true, one_time_keyboard: Boolean = true) extends KeyboardMarkup
+
+case class InlineKeyboardMarkup(inline_keyboard: List[List[InlineKeyboardButton]]) extends KeyboardMarkup
+
+case class InlineKeyboardButton(text: String, callback_data: String)
+
+object InlineKeyboardButton {
+  def apply(button_data: String): InlineKeyboardButton = new InlineKeyboardButton(button_data, button_data)
+}
+
+case class CallbackQuery(id: String,
+                         from: User,
+                         message: Message,
+                         chat_instance: String,
+                         data: String)

@@ -63,3 +63,20 @@ case class SendSticker(chatId: String,
 
   override def methodName = "sendSticker"
 }
+
+case class answerCallbackQuery(callback_query_id: String,
+                               text: Option[String] = None) extends SendData {
+
+  override def putInto(httpRequest: HttpRequest): HttpRequest = {
+    var sendRequest = httpRequest
+
+    def addParam(key: String)(value: Any): Unit = sendRequest = sendRequest.param(key, value.toString)
+
+    addParam("callback_query_id")(callback_query_id)
+    text.foreach(addParam("text"))
+
+    sendRequest
+  }
+
+  override def methodName = "answerCallbackQuery"
+}
