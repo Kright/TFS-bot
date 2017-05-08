@@ -23,7 +23,7 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
                       var currentPasswd: String = "")
 
 
-  private val UserMap = scala.collection.mutable.Map[Long, UserInfo]()
+  private val userMap = scala.collection.mutable.Map[Long, UserInfo]()
 
   // перевести надписи на английский и собрать в файл?
 
@@ -48,39 +48,32 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
   val showPassword = "Чтобы увидеть введённые символы, нажмите на кнопку '???'"
 
   val codePanel = InlineKeyboardMarkup(List(
-    List(InlineKeyboardButton("1"), InlineKeyboardButton("2"), InlineKeyboardButton("3")),
-    List(InlineKeyboardButton("4"), InlineKeyboardButton("5"), InlineKeyboardButton("6")),
-    List(InlineKeyboardButton("7"), InlineKeyboardButton("8"), InlineKeyboardButton("9")),
-    List(InlineKeyboardButton("0"), InlineKeyboardButton("←"), InlineKeyboardButton("New code"))
-  ))
+    List("1", "2", "3"),
+    List("4", "5", "6"),
+    List("7", "8", "9"),
+    List("0", "←", "New code")).
+    map(_.map(InlineKeyboardButton(_)))
+  )
 
   val passwordKeyboard1 = InlineKeyboardMarkup(List(
-    List(InlineKeyboardButton("1"), InlineKeyboardButton("2"), InlineKeyboardButton("3"), InlineKeyboardButton("4"),
-      InlineKeyboardButton("5"), InlineKeyboardButton("6"), InlineKeyboardButton("7"), InlineKeyboardButton("8")),
-    List(InlineKeyboardButton("9"), InlineKeyboardButton("0"), InlineKeyboardButton("_"), InlineKeyboardButton("*"),
-      InlineKeyboardButton("+"), InlineKeyboardButton("-"), InlineKeyboardButton("="), InlineKeyboardButton("←")),
-    List(InlineKeyboardButton("q"), InlineKeyboardButton("w"), InlineKeyboardButton("e"), InlineKeyboardButton("r"),
-      InlineKeyboardButton("t"), InlineKeyboardButton("y"), InlineKeyboardButton("u"), InlineKeyboardButton("i")),
-    List(InlineKeyboardButton("o"), InlineKeyboardButton("p"), InlineKeyboardButton("a"), InlineKeyboardButton("s"),
-      InlineKeyboardButton("d"), InlineKeyboardButton("f"), InlineKeyboardButton("g"), InlineKeyboardButton("h")),
-    List(InlineKeyboardButton("j"), InlineKeyboardButton("k"), InlineKeyboardButton("l"), InlineKeyboardButton("z"),
-      InlineKeyboardButton("x"), InlineKeyboardButton("c"), InlineKeyboardButton("v"), InlineKeyboardButton("b")),
-    List(InlineKeyboardButton("n"), InlineKeyboardButton("m"), InlineKeyboardButton(","), InlineKeyboardButton("."),
-      InlineKeyboardButton("/"), InlineKeyboardButton("\\"), InlineKeyboardButton("???"), InlineKeyboardButton("↲"))
-  ))
+    List("1", "2", "3", "4", "5", "6", "7", "8"),
+    List("9", "0", "_", "*", "+", "-", "=", "←"),
+    List("q", "w", "e", "r", "t", "y", "u", "i"),
+    List("o", "p", "a", "s", "d", "f", "g", "h"),
+    List("j", "k", "l", "z", "x", "c", "v", "b"),
+    List("n", "m", ",", ".", "/", "\\", "???", "↲")).
+    map(_.map(InlineKeyboardButton(_)))
+  )
 
   val passwordKeyboard2 = InlineKeyboardMarkup(List(
-    List(InlineKeyboardButton("!"), InlineKeyboardButton("@"), InlineKeyboardButton("#"), InlineKeyboardButton("$"),
-      InlineKeyboardButton("%"), InlineKeyboardButton("^"), InlineKeyboardButton("&"), InlineKeyboardButton("←")),
-    List(InlineKeyboardButton("Q"), InlineKeyboardButton("W"), InlineKeyboardButton("E"), InlineKeyboardButton("R"),
-      InlineKeyboardButton("T"), InlineKeyboardButton("Y"), InlineKeyboardButton("U"), InlineKeyboardButton("I")),
-    List(InlineKeyboardButton("O"), InlineKeyboardButton("P"), InlineKeyboardButton("A"), InlineKeyboardButton("S"),
-      InlineKeyboardButton("D"), InlineKeyboardButton("F"), InlineKeyboardButton("G"), InlineKeyboardButton("H")),
-    List(InlineKeyboardButton("J"), InlineKeyboardButton("K"), InlineKeyboardButton("L"), InlineKeyboardButton("Z"),
-      InlineKeyboardButton("X"), InlineKeyboardButton("C"), InlineKeyboardButton("V"), InlineKeyboardButton("B")),
-    List(InlineKeyboardButton("N"), InlineKeyboardButton("M"), InlineKeyboardButton("?"), InlineKeyboardButton("~"),
-      InlineKeyboardButton(":"), InlineKeyboardButton("`"), InlineKeyboardButton("???"), InlineKeyboardButton("↲"))
-  ))
+    List("!", "@", "#", "$", "%", "^", "&", "←"),
+    List("Q", "W", "E", "R", "T", "Y", "U", "←I"),
+    List("O", "P", "A", "S", "D", "F", "G", "H"),
+    List("J", "K", "L", "Z", "X", "C", "V", "B"),
+    List("N", "M", "?", "~", ":", "`", "???", "↲")).
+    map(_.map(InlineKeyboardButton(_)))
+  )
+
 
   val contactRequest = ReplyKeyboardMarkup(List(List(KeyboardButton("Предоставить", request_contact = true))))
 
@@ -92,38 +85,6 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
     zonedDateTimeIst.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT))
   }
 
-  private def executeSessionCommand(id: Long, command: String): Unit = {
-    UserMap(id) match {
-      case UserInfo(_, true, Some(s), Some(p), None, None, false, _, _) =>
-        if (command == "history") {
-          val history = tinkoff.getHistory(s)
-          bot(SendMessage(id.toString, getFormattedHistory(history), parseMode = Option("HTML")))
-        } else if (command == "balance") {
-          val balance = tinkoff.getBalance(s)
-          bot(SendMessage(id.toString, getFormattedBalance(balance), parseMode = Option("HTML")))
-        }
-      case UserInfo(_, false, Some(s), Some(p), None, None, false, _, _) =>
-        UserMap(id).operationTicket = Some(tinkoff.sendAuthSMS(s, p))
-        bot(SendMessage(id.toString, smsInvite, replyMarkup = Some(codePanel.toString)))
-        UserMap(id).reqCommand = Some(command)
-      case UserInfo(_, false, Some(s), None, None, None, false, _, _) =>
-        bot(SendMessage(id.toString, contactInvite, replyMarkup = Some(contactRequest.toString)))
-        UserMap(id).reqCommand = Some(command)
-      case UserInfo(_, false, None, Some(p), None, None, false, _, _) =>
-        val session = tinkoff.initSession()
-        UserMap(id).sessionId = Some(session)
-        UserMap(id).operationTicket = Some(tinkoff.sendAuthSMS(session, p))
-        bot(SendMessage(id.toString, smsInvite, replyMarkup = Some(codePanel.toString)))
-        UserMap(id).reqCommand = Some(command)
-      case UserInfo(_, false, None, None, None, None, false, _, _) =>
-        val session = tinkoff.initSession()
-        UserMap(id).sessionId = Some(session)
-        bot(SendMessage(id.toString, contactInvite, replyMarkup = Some(contactRequest.toString)))
-        UserMap(id).reqCommand = Some(command)
-      case _ =>
-    }
-  }
-
   def dispatch(timeoutSeconds: Int = 0): Unit = {
     val updatesList = bot.requestUpdates(timeoutSeconds)
 
@@ -133,81 +94,98 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
     }
   }
 
+  private def processSessionCommand(id: Long, command: String): Unit = {
+    userMap(id) match {
+      case UserInfo(_, true, Some(session), Some(phone), None, None, false, _, _) =>
+        executeSessionCommand(id, session, command)
+      case UserInfo(_, false, Some(session), Some(phone), None, None, false, _, _) =>
+        userMap(id).operationTicket = Some(tinkoff.sendAuthSMS(session, phone))
+        bot(SendMessage(id.toString, smsInvite, replyMarkup = Some(codePanel.toString)))
+        userMap(id).reqCommand = Some(command)
+      case UserInfo(_, false, Some(session), None, None, None, false, _, _) =>
+        bot(SendMessage(id.toString, contactInvite, replyMarkup = Some(contactRequest.toString)))
+        userMap(id).reqCommand = Some(command)
+      case UserInfo(_, false, None, Some(phone), None, None, false, _, _) =>
+        val session = tinkoff.initSession()
+        userMap(id).sessionId = Some(session)
+        userMap(id).operationTicket = Some(tinkoff.sendAuthSMS(session, phone))
+        bot(SendMessage(id.toString, smsInvite, replyMarkup = Some(codePanel.toString)))
+        userMap(id).reqCommand = Some(command)
+      case UserInfo(_, false, None, None, None, None, false, _, _) =>
+        val session = tinkoff.initSession()
+        userMap(id).sessionId = Some(session)
+        bot(SendMessage(id.toString, contactInvite, replyMarkup = Some(contactRequest.toString)))
+        userMap(id).reqCommand = Some(command)
+      case _ =>
+    }
+  }
+
   private def processCBQ(cbq: CallbackQuery): Unit = {
     val id = cbq.message.chat.id
-    UserMap(id) match {
-      case UserInfo(_, _, Some(s), Some(p), Some(o), Some(c), _, curCode, _) =>
-        val sym = cbq.data
-        if (sym.forall(_.isDigit)) {
-          val code = curCode + sym
-          UserMap(id).currentCode = code
-          if (code.length == 4) {
-            tinkoff.confirmAuthSMS(s, o, code) match {
-              case ConfirmResult(true, true) =>
-                bot(SendMessage(id.toString, passwordInvite, replyMarkup = Some(passwordKeyboard1.toString)))
-                bot(SendMessage(id.toString, showPassword, replyMarkup = Some(passwordKeyboard2.toString)))
-                UserMap(id).currentCode = ""
-                UserMap(id).operationTicket = None
-                UserMap(id).reqPassword = true
-                bot(answerCallbackQuery(cbq.id))
-              case ConfirmResult(true, false) =>
-                tinkoff.levelUp(s)
-                UserMap(id).authorized = true
-                UserMap(id).currentCode = ""
-                UserMap(id).operationTicket = None
-                if (c == "balance") bot(SendMessage(id.toString, getFormattedBalance(tinkoff.getBalance(s)), parseMode = Option("HTML")))
-                else if (c == "history") bot(SendMessage(id.toString, getFormattedHistory(tinkoff.getHistory(s)), parseMode = Option("HTML")))
-                UserMap(id).reqCommand = None
-                bot(answerCallbackQuery(cbq.id))
-              case _ =>
-                UserMap(id).currentCode = ""
-                bot(answerCallbackQuery(cbq.id, Some(wrongCode)))
+    userMap(id) match {
+      case UserInfo(_, _, Some(session), Some(phone), Some(opTicket), Some(command), _, curCode, _) =>
+        cbq.data match {
+          case sym: String if sym.forall(_.isDigit) =>
+            val code = curCode + sym
+            userMap(id).currentCode = code
+            if (code.length == 4) {
+              tinkoff.confirmAuthSMS(session, opTicket, code) match {
+                case ConfirmResult(true, true) =>
+                  bot(SendMessage(id.toString, passwordInvite, replyMarkup = Some(passwordKeyboard1.toString)))
+                  bot(SendMessage(id.toString, showPassword, replyMarkup = Some(passwordKeyboard2.toString)))
+                  userMap(id).currentCode = ""
+                  userMap(id).operationTicket = None
+                  userMap(id).reqPassword = true
+                  bot(answerCallbackQuery(cbq.id))
+                case ConfirmResult(true, false) =>
+                  tinkoff.levelUp(session)
+                  userMap(id).authorized = true
+                  userMap(id).currentCode = ""
+                  userMap(id).operationTicket = None
+                  executeSessionCommand(id, session, command)
+                  userMap(id).reqCommand = None
+                  bot(answerCallbackQuery(cbq.id))
+                case _ =>
+                  userMap(id).currentCode = ""
+                  bot(answerCallbackQuery(cbq.id, Some(wrongCode)))
+              }
             }
-          }
-          else bot(answerCallbackQuery(cbq.id))
-        }
-        else if (sym == "←") {
-          val codeLen = UserMap(id).currentCode.length
-          if (codeLen == 1)
-            UserMap(id).currentCode = ""
-          else if (codeLen > 1)
-            UserMap(id).currentCode = curCode.substring(0, codeLen - 1)
-          bot(answerCallbackQuery(cbq.id))
-        }
-        else if (sym == "New code") {
-          UserMap(id).operationTicket = Some(tinkoff.sendAuthSMS(s, p))
-          UserMap(id).currentCode = ""
-          bot(answerCallbackQuery(cbq.id, Some(resendCode)))
-        }
-      case UserInfo(_, _, Some(s), Some(p), _, Some(c), true, _, curPasswd) =>
-        val sym = cbq.data
-        if (sym == "↲") {
-          if (tinkoff.signUp(s, curPasswd)) {
-            tinkoff.levelUp(s)
-            UserMap(id).authorized = true
-            UserMap(id).reqPassword = false
-            UserMap(id).currentPasswd = ""
+            else bot(answerCallbackQuery(cbq.id))
+          case "←" =>
+            val codeLen = userMap(id).currentCode.length
+            if (codeLen > 1) userMap(id).currentCode = curCode.substring(0, codeLen - 1)
+            else userMap(id).currentCode = ""
             bot(answerCallbackQuery(cbq.id))
-            if (c == "balance") bot(SendMessage(id.toString, getFormattedBalance(tinkoff.getBalance(s)), parseMode = Option("HTML")))
-            else if (c == "history") bot(SendMessage(id.toString, getFormattedHistory(tinkoff.getHistory(s)), parseMode = Option("HTML")))
-            UserMap(id).reqCommand = None
-          }
-          else bot(answerCallbackQuery(cbq.id, Some(wrongPassword)))
+          case "New code" =>
+            userMap(id).operationTicket = Some(tinkoff.sendAuthSMS(session, phone))
+            userMap(id).currentCode = ""
+            bot(answerCallbackQuery(cbq.id, Some(resendCode)))
+          case _ => bot(answerCallbackQuery(cbq.id))
         }
-        else if (sym == "←") {
-          val passLen = UserMap(id).currentPasswd.length
-          if (passLen == 1)
-            UserMap(id).currentPasswd = ""
-          else if (passLen > 1)
-            UserMap(id).currentPasswd = curPasswd.substring(0, passLen - 1)
-          bot(answerCallbackQuery(cbq.id))
-        }
-        else if (sym == "???") {
-          bot(answerCallbackQuery(cbq.id, Some(curPasswd)))
-        }
-        else {
-          UserMap(id).currentPasswd = curPasswd + sym
-          bot(answerCallbackQuery(cbq.id))
+      case UserInfo(_, _, Some(session), Some(phone), _, Some(command), true, _, curPasswd) =>
+        cbq.data match {
+          case "↲" =>
+            if (tinkoff.signUp(session, curPasswd)) {
+              tinkoff.levelUp(session)
+              userMap(id).authorized = true
+              userMap(id).reqPassword = false
+              userMap(id).currentPasswd = ""
+              bot(answerCallbackQuery(cbq.id))
+              executeSessionCommand(id, session, command)
+              userMap(id).reqCommand = None
+            }
+            else bot(answerCallbackQuery(cbq.id, Some(wrongPassword)))
+          case "←" =>
+            val passLen = userMap(id).currentPasswd.length
+            if (passLen > 1) userMap(id).currentPasswd = curPasswd.substring(0, passLen - 1)
+            else userMap(id).currentPasswd = ""
+            bot(answerCallbackQuery(cbq.id))
+          case "???" =>
+            bot(answerCallbackQuery(cbq.id, Some(curPasswd)))
+          case sym: String =>
+            userMap(id).currentPasswd = curPasswd + sym
+            bot(answerCallbackQuery(cbq.id))
+          case _ => bot(answerCallbackQuery(cbq.id))
         }
       case _ => bot(answerCallbackQuery(cbq.id))
     }
@@ -215,55 +193,38 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
 
   private def processMessage(msg: Message): Unit = {
     val id = msg.chat.id
-    if (UserMap contains id) {
-      val timeDiff = Instant.now.getEpochSecond - UserMap(id).lastMessageTime
+    if (userMap contains id) {
+      val timeDiff = Instant.now.getEpochSecond - userMap(id).lastMessageTime
       if ((timeDiff >= 300) && (timeDiff <= 600)) {
-        UserMap(id) match {
-          case UserInfo(_, true, Some(s), _, _, _, _, _, _) =>
-            tinkoff.signOut(s)
-            UserMap(id).authorized = false
-            UserMap(id).sessionId = None
-            UserMap(id).operationTicket = None
-            UserMap(id).reqCommand = None
-            UserMap(id).reqPassword = false
-            bot(SendMessage(id.toString, fiveMinReminder))
-          case _ =>
-        }
+        endBotSession(id)
+        bot(SendMessage(id.toString, exitMessage))
       }
       else if (timeDiff > 600) {
-        UserMap(id) match {
-          case UserInfo(_, _, Some(s), _, _, _, _, _, _) =>
-            UserMap(id).authorized = false
-            UserMap(id).sessionId = None
-            UserMap(id).operationTicket = None
-            UserMap(id).reqCommand = None
-            UserMap(id).reqPassword = false
-            bot(SendMessage(id.toString, tenMinReminder))
-          case _ =>
-        }
+        endBotSession(id)
+        bot(SendMessage(id.toString, tenMinReminder))
       }
-      UserMap(id).lastMessageTime = msg.date
+      userMap(id).lastMessageTime = msg.date
     }
     else
-      UserMap += (id -> UserInfo(msg.date))
+      userMap += (id -> UserInfo(msg.date))
 
-    UserMap(id) match {
+    userMap(id) match {
       case UserInfo(_, _, _, None, None, None, false, _, _) =>
         msg.contact match {
-          case Some(contact) if contact.user_id == msg.from.get.id => UserMap(id).phone = Some(contact.phone_number)
+          case Some(contact) if contact.user_id == msg.from.get.id => userMap(id).phone = Some(contact.phone_number)
           case None =>
         }
-      case UserInfo(_, _, Some(s), None, None, Some(c), false, _, _) =>
+      case UserInfo(_, _, Some(session), None, None, Some(command), false, _, _) =>
         msg.contact match {
           case Some(contact) =>
             val phone = contact.phone_number
-            UserMap(id).phone = Some(phone)
-            UserMap(id).operationTicket = Some(tinkoff.sendAuthSMS(s, phone))
+            userMap(id).phone = Some(phone)
+            userMap(id).operationTicket = Some(tinkoff.sendAuthSMS(session, phone))
             bot(SendMessage(id.toString, smsInvite, replyMarkup = Some(codePanel.toString)))
           case None =>
         }
-      case UserInfo(_, false, Some(s), Some(p), None, Some(c), false, _, _) =>
-        UserMap(id).operationTicket = Some(tinkoff.sendAuthSMS(s, p))
+      case UserInfo(_, false, Some(session), Some(phone), None, Some(command), false, _, _) =>
+        userMap(id).operationTicket = Some(tinkoff.sendAuthSMS(session, phone))
         bot(SendMessage(id.toString, smsInvite, replyMarkup = Some(codePanel.toString)))
       case _ =>
     }
@@ -273,33 +234,31 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
 
   private def processCommand(cmd: String, msg: Message): Unit = cmd match {
     case "/h" | "/help" | "/start" => bot(SendMessage(msg.chat.id.toString, helpText))
-    case "/b" | "/balance" => executeSessionCommand(msg.chat.id, "balance")
-    case "/hi" | "/history" => executeSessionCommand(msg.chat.id, "history")
-    case "/e" | "/end" => endBotSession(msg)
+    case "/b" | "/balance" => processSessionCommand(msg.chat.id, "balance")
+    case "/hi" | "/history" => processSessionCommand(msg.chat.id, "history")
+    case "/e" | "/end" => endBotSession(msg.chat.id); bot(SendMessage(msg.chat.id.toString, exitMessage))
     case "/r" | "/rates" => sendRates(msg)
     case _ => sendCommandUnknown(cmd, msg)
   }
 
-  private def endBotSession(msg: Message): Unit = {
-    val id = msg.chat.id
-    UserMap(id) match {
-      case UserInfo(_, true, Some(s), _, _, _, _, _, _) =>
-        tinkoff.signOut(s)
-        UserMap(id).authorized = false
-        UserMap(id).sessionId = None
-        UserMap(id).phone = None
-        UserMap(id).operationTicket = None
-        UserMap(id).reqCommand = None
-        UserMap(id).reqPassword = false
-      case UserInfo(_, false, _, _, _, _, _, _, _) =>
-        UserMap(id).sessionId = None
-        UserMap(id).phone = None
-        UserMap(id).operationTicket = None
-        UserMap(id).reqCommand = None
-        UserMap(id).reqPassword = false
-      case _ =>
-    }
-    bot(SendMessage(id.toString, exitMessage))
+  private def executeSessionCommand(id: Long, session: String, command: String): Unit = command match {
+    case "history" =>
+      val history = tinkoff.getHistory(session)
+      bot(SendMessage(id.toString, getFormattedHistory(history), parseMode = Option("HTML")))
+    case "balance" =>
+      val balance = tinkoff.getBalance(session)
+      bot(SendMessage(id.toString, getFormattedBalance(balance), parseMode = Option("HTML")))
+    case _ =>
+  }
+
+  private def endBotSession(id: Long): Unit = {
+    userMap(id).sessionId.foreach(session => tinkoff.signOut(session))
+    userMap(id).authorized = false
+    userMap(id).sessionId = None
+    userMap(id).phone = None
+    userMap(id).operationTicket = None
+    userMap(id).reqCommand = None
+    userMap(id).reqPassword = false
   }
 
   private def sendCommandUnknown(cmd: String, msg: Message): Unit = {
@@ -307,7 +266,7 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
   }
 
   private def sendRates(msg: Message): Unit = {
-    val session = UserMap(msg.chat.id).sessionId
+    val session = userMap(msg.chat.id).sessionId
     val rates = getFormattedRates(tinkoff.getRates(session))
     bot(SendMessage(msg.chat.id.toString, rates, parseMode = Option("HTML")))
   }
