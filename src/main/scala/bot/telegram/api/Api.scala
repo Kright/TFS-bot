@@ -50,7 +50,7 @@ case class Message(message_id: Int,
     text.get.substring(e.offset, e.offset + e.length)
   }
 
-  def botCommands = getEntities("bot_command").map(asText)
+  def botCommands: List[String] = getEntities("bot_command").map(asText)
 
   override def toString: String = {
     val sb = new StringBuilder
@@ -98,13 +98,15 @@ case class Chat(id: Long,
                 first_name: Option[String],
                 last_name: Option[String]) {
 
-  def isPrivate = `type` == "private"
+  def isPrivate: Boolean = `type` == "private"
 
-  def isGroup = `type` == "group"
+  def isGroup: Boolean = `type` == "group"
 
-  def isSupergroup = `type` == "supergroup"
+  def isSupergroup: Boolean = `type` == "supergroup"
 
-  def isChannel = `type` == "channel"
+  def isChannel: Boolean = `type` == "channel"
+
+  def sendMessage: SendMessage = SendMessage(id.toString, "")
 
   override def toString: String = {
     val sb = new StringBuilder
@@ -126,18 +128,3 @@ case class Sticker(file_id: String, width: Integer, height: Integer)
 
 
 case class Response(ok: Boolean, description: Option[String], result: Option[List[Update]])
-
-
-sealed trait SendResult
-
-case object SendSuccess extends SendResult
-
-case class SendFailed(reason: Response) extends SendResult
-
-object SendResult {
-  def apply(response: Response): SendResult =
-    if (response.ok)
-      SendSuccess
-    else
-      SendFailed(response)
-}

@@ -1,7 +1,7 @@
 package bot.dispatcher
 
 import bot.telegram.TelegramBot
-import bot.telegram.api._
+import bot.telegram.api.{SendMessage, _}
 import bot.tinkoff.{Rate, TinkoffAPI}
 
 /**
@@ -25,12 +25,12 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
   }
 
   private def sendCommandUnknown(cmd: String, msg: Message): Unit = {
-    bot.sendMessage(msg.chat.id.toString, s"unknown command : $cmd", parseMode = Option("HTML"))
+    bot(msg.chat.sendMessage withText s"unknown command : $cmd")
   }
 
   private def sendRates(msg: Message): Unit = {
     val rates = getFormattedRates(tinkoff.getRates())
-    bot.sendMessage(msg.chat.id.toString, rates, parseMode = Option("HTML"))
+    bot(SendMessage(msg.chat.id.toString, rates, parseMode = Option("HTML")))
   }
 
   private def getFormattedRates(rates: List[Rate]): String = {
