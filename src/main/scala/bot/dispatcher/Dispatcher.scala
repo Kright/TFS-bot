@@ -6,6 +6,7 @@ import bot.tinkoff._
 import java.time.format.{DateTimeFormatter, FormatStyle}
 import java.time.{Instant, ZoneId, ZonedDateTime}
 import scala.io.Source
+import scala.util.Random
 
 /**
   * Created by lgor on 4/15/17.
@@ -74,6 +75,16 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
     map(_.map(InlineKeyboardButton(_)))
   )
 
+  val tinkoffStickers = Array(
+    "CAADAgADHwAD4mVWBGkH5N3GjaEcAg", "CAADAgADIQAD4mVWBMNZdOUBQUGVAg", "CAADAgADIwAD4mVWBL8Il1dwQUbfAg",
+    "CAADAgADJQAD4mVWBOR0WdqcHOrFAg", "CAADAgADJwAD4mVWBL4nVboPg1dIAg", "CAADAgADKQAD4mVWBOkFPTz-4ptfAg",
+    "CAADAgADKwAD4mVWBODqYly9c1b8Ag", "CAADAgADLwAD4mVWBNhYiMbDJpkLAg", "CAADAgADMwAD4mVWBGGnT-DxXg8DAg",
+    "CAADAgADNQAD4mVWBFQH2EGhFfblAg", "CAADAgADNwAD4mVWBMu4LUhZqddcAg", "CAADAgADOQAD4mVWBAVtKqXTdHuEAg",
+    "CAADAgADPQAD4mVWBJJZXblXRvIYAg", "CAADAgADPwAD4mVWBKtrwHy4gQi2Ag", "CAADAgADQwAD4mVWBJoIyFM0lfHmAg",
+    "CAADAgADRQAD4mVWBH318gNULoWvAg", "CAADAgADRwAD4mVWBHOfia9HSxNZAg", "CAADAgADSQAD4mVWBGybt0Hy4BWpAg",
+    "CAADAgADSwAD4mVWBBX2FuqoIQSbAg", "CAADAgADTQAD4mVWBIsBwI9LZXIcAg", "CAADAgADTwAD4mVWBK5y37E0B1BCAg",
+    "CAADAgADUQAD4mVWBP65Nb6BFa28Ag", "CAADAgADUwAD4mVWBBV7pAwJHItRAg", "CAADAgADVQAD4mVWBGsJm_4F6J-XAg"
+  )
 
   val contactRequest = ReplyKeyboardMarkup(List(List(KeyboardButton("Предоставить", request_contact = true))))
 
@@ -238,6 +249,7 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
     case "/hi" | "/history" => processSessionCommand(msg.chat.id, "history")
     case "/e" | "/end" => endBotSession(msg.chat.id); bot(SendMessage(msg.chat.id.toString, exitMessage))
     case "/r" | "/rates" => sendRates(msg)
+    case "/s" | "/sticker" => sendTinkoffSticker(msg.chat.id)
     case _ => sendCommandUnknown(cmd, msg)
   }
 
@@ -259,6 +271,10 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
     userMap(id).operationTicket = None
     userMap(id).reqCommand = None
     userMap(id).reqPassword = false
+  }
+
+  private def sendTinkoffSticker(id: Long): Unit = {
+    bot(SendSticker(id.toString, tinkoffStickers(Random.nextInt(tinkoffStickers.length))))
   }
 
   private def sendCommandUnknown(cmd: String, msg: Message): Unit = {
