@@ -2,12 +2,14 @@ package bot.dispatcher
 
 import java.util.concurrent.{Executors, TimeUnit}
 
-import scala.util.{Failure, Success, Try}
+import com.typesafe.scalalogging.StrictLogging
+
+import scala.util.{Failure, Try}
 
 /**
   * Created by lgor on 4/15/17.
   */
-object Sheduler {
+object Sheduler extends StrictLogging {
 
   val threadsCount = 1
   val delayBetweenExecutionMs = 1000
@@ -23,8 +25,8 @@ object Sheduler {
       override def run(): Unit = {
 
         Try(task()) match {
-          case Failure(ex) => Console.err.println(s"Sheduler catched error : $ex")
-          case _ => Unit
+          case Failure(ex) => logger.error(s"scheduler catched exception: $ex")
+          case _ =>
         }
 
         executor.schedule(this, delayBetweenExecutionMs, TimeUnit.MILLISECONDS)
