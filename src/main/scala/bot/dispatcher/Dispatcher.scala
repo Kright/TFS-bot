@@ -123,7 +123,7 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
   private def processCBQ(cbq: CallbackQuery): Unit = {
     val id = cbq.message.chat.id
     userMap(id) match {
-      case UserInfo(_, _, Some(session), Some(phone), Some(opTicket), Some(command), _, curCode, _) =>
+      case UserInfo(_, _, Some(session), Some(phone), Some(opTicket), Some(command), false, curCode, _) =>
         cbq.data match {
           case sym: String if sym.forall(_.isDigit) =>
             val code = curCode + sym
@@ -182,7 +182,7 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
             bot(answerCallbackQuery(cbq.id))
           case "???" =>
             bot(answerCallbackQuery(cbq.id, Some(curPasswd)))
-          case sym: String =>
+          case sym: String if sym.length == 1 =>
             userMap(id).currentPasswd = curPasswd + sym
             bot(answerCallbackQuery(cbq.id))
           case _ => bot(answerCallbackQuery(cbq.id))
