@@ -40,9 +40,7 @@ trait TelegramBot {
 
 object TelegramBot {
 
-  def apply(token: String): TelegramBot = new TelegramBotImpl(token)
-    with TelegramSendLogging
-    with TelegramUpdatesLogging
+  def apply(token: String): TelegramBot = new TelegramBotImpl(token) with TelegramLogging
 }
 
 
