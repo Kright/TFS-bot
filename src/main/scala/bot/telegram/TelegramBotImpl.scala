@@ -11,7 +11,7 @@ import scalaj.http.Http
   * Created by lgor on 4/27/17.
   */
 class TelegramBotImpl(val token: String,
-                      private val conf: Config = ConfigFactory.load().getConfig("bot.telegram.connection")) extends TelegramBot {
+                      config: Config = ConfigFactory.load().getConfig("bot.telegram.connection")) extends TelegramBot {
 
   var lastUpdatedId: Int = -1
 
@@ -19,9 +19,9 @@ class TelegramBotImpl(val token: String,
 
   implicit val formats = DefaultFormats
 
-  private val connTimeoutMs = conf.getInt("connTimeoutMs")
-  private val readTimeoutMs = conf.getInt("readTimeoutMs")
-  private val additionalTimeoutMs = conf.getInt("additionalTimeoutMs")
+  private val connTimeoutMs = config.getInt("connTimeoutMs")
+  private val readTimeoutMs = config.getInt("readTimeoutMs")
+  private val additionalTimeoutMs = config.getInt("additionalTimeoutMs")
 
   override def apply(sendData: SendData): SendResult = {
     val httpRequest = sendData.putInto(Http(s"$url/${sendData.methodName}").method("POST"))
