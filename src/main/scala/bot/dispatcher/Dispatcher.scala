@@ -5,8 +5,8 @@ import bot.telegram.api.{SendMessage, _}
 import bot.tinkoff._
 import java.time.format.{DateTimeFormatter, FormatStyle}
 import java.time.{Instant, ZoneId, ZonedDateTime}
-import scala.io.Source
 import scala.util.Random
+import com.typesafe.config.ConfigFactory
 
 /**
   * Created by lgor on 4/15/17.
@@ -23,30 +23,18 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
                       var currentCode: String = "",
                       var currentPasswd: String = "")
 
-
   private val userMap = scala.collection.mutable.Map[Long, UserInfo]()
 
-  // перевести надписи на английский и собрать в файл?
-
-  val contactInvite = "Для продолжения, предоставьте свой номер телефона."
-
-  val passwordInvite = "Для дальнейшей авторизации необходимо ввести пароль."
-
-  val smsInvite = "На Ваш номер было отправлено SMS-сообщение с кодом подтверждения.\nПожалуйста, введите его."
-
-  val fiveMinReminder = "После 5 минут бездействия, Ваш сеанс авторизации был завершён"
-
-  val tenMinReminder = "После 10 минут бездействия, Ваша сессия была завершена"
-
-  val exitMessage = "Ваш сеанс работы с ботом завершён."
-
-  val wrongPassword = "Введён неверный пароль.\nПопробуйте ещё раз."
-
-  val wrongCode = "Введён неверный код подтверждения.\nПопробуйте ещё раз."
-
-  val resendCode = "Код потверждения был отправлен повторно."
-
-  val showPassword = "Чтобы увидеть введённые символы, нажмите на кнопку '???'"
+  val (contactInvite, passwordInvite, smsInvite, fiveMinReminder, tenMinReminder,
+  exitMessage, wrongPassword, wrongCode, resendCode, showPassword, shareContact,
+  noOperations, operationsInfo, helpText) = {
+    val config = ConfigFactory.load("text").getConfig("text")
+    (config.getString("contactInvite"), config.getString("passwordInvite"), config.getString("smsInvite"),
+      config.getString("fiveMinReminder"), config.getString("tenMinReminder"), config.getString("exitMessage"),
+      config.getString("wrongPassword"), config.getString("wrongCode"), config.getString("resendCode"),
+      config.getString("showPassword"), config.getString("shareContact"), config.getString("noOperations"),
+      config.getString("operationsInfo"), config.getString("helpText"))
+  }
 
   val codePanel = InlineKeyboardMarkup(List(
     List("1", "2", "3"),
@@ -86,9 +74,7 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
     "CAADAgADUQAD4mVWBP65Nb6BFa28Ag", "CAADAgADUwAD4mVWBBV7pAwJHItRAg", "CAADAgADVQAD4mVWBGsJm_4F6J-XAg"
   )
 
-  val contactRequest = ReplyKeyboardMarkup(List(List(KeyboardButton("Предоставить", request_contact = true))))
-
-  val helpText = Source.fromFile("help.txt").getLines.mkString("\n")
+  val contactRequest = ReplyKeyboardMarkup(List(List(KeyboardButton(shareContact, request_contact = true))))
 
   def millisToDate(millis: Long): String = {
     val instant = Instant.ofEpochMilli(millis)
@@ -303,9 +289,9 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
   }
 
   private def getFormattedHistory(accounts: List[Operation]): String = {
-    if (accounts.isEmpty) "Записей об операциях нет."
+    if (accounts.isEmpty) noOperations
     else {
-      val operationsList = accounts.map(x => "Дата: %s\nКатегория: %s\nОписание: %s\nСумма: %s%7.3f %3s\n".format(
+      val operationsList = accounts.map(x => operationsInfo.format(
         millisToDate(x.operationTime.milliseconds), x.category.name, x.description, if (x.`type` == "Credit") "+" else "-", x.amount.value, x.amount.currency.name
       ))
       "<pre>" + operationsList.mkString("\n\n") + "</pre>"
