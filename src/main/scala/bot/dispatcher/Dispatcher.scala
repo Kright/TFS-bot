@@ -131,7 +131,7 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
     }
   }
 
-  private def processCBQ(cbq: CallbackQuery): Unit = {
+  private def processCBQ(cbq: CallbackQuery): Unit = if (cbq.message.chat.`type` == "private") {
     val id = cbq.message.chat.id
     userMap(id) match {
       case UserInfo(_, _, Some(session), Some(phone), Some(opTicket), Some(command), false, curCode, _) =>
@@ -202,7 +202,7 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
     }
   }
 
-  private def processMessage(msg: Message): Unit = {
+  private def processMessage(msg: Message): Unit = if (msg.chat.`type` == "private") {
     val id = msg.chat.id
     if (userMap contains id) {
       val timeDiff = Instant.now.getEpochSecond - userMap(id).lastMessageTime
