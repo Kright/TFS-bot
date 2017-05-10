@@ -2,6 +2,7 @@ package bot.dispatcher
 
 import java.util.concurrent.{Executors, TimeUnit}
 
+import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.StrictLogging
 
 import scala.util.{Failure, Try}
@@ -11,8 +12,10 @@ import scala.util.{Failure, Try}
   */
 object Sheduler extends StrictLogging {
 
-  val threadsCount = 1
-  val delayBetweenExecutionMs = 1000
+  val (threadsCount, delayBetweenExecutionMs) = {
+    val config = ConfigFactory.load().getConfig("bot.scheduler")
+    (config.getInt("threadsCount"), config.getInt("delayBetweenExecutionMs"))
+  }
 
   @volatile
   private var running: Boolean = true

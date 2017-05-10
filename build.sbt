@@ -12,3 +12,5 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.7"
 libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0"
+
+libraryDependencies += "com.typesafe" % "config" % "1.3.1"
