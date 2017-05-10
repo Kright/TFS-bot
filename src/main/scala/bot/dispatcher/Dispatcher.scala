@@ -147,7 +147,7 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
                   userMap(id).currentCode = ""
                   userMap(id).operationTicket = None
                   userMap(id).reqPassword = true
-                  bot(answerCallbackQuery(cbq.id))
+                  bot(AnswerCallbackQuery(cbq.id))
                 case ConfirmResult(true, false) =>
                   tinkoff.levelUp(session)
                   userMap(id).authorized = true
@@ -155,23 +155,23 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
                   userMap(id).operationTicket = None
                   executeSessionCommand(id, session, command)
                   userMap(id).reqCommand = None
-                  bot(answerCallbackQuery(cbq.id))
+                  bot(AnswerCallbackQuery(cbq.id))
                 case _ =>
                   userMap(id).currentCode = ""
-                  bot(answerCallbackQuery(cbq.id, Some(wrongCode)))
+                  bot(AnswerCallbackQuery(cbq.id, Some(wrongCode)))
               }
             }
-            else bot(answerCallbackQuery(cbq.id))
+            else bot(AnswerCallbackQuery(cbq.id))
           case "←" =>
             val codeLen = userMap(id).currentCode.length
             if (codeLen > 1) userMap(id).currentCode = curCode.substring(0, codeLen - 1)
             else userMap(id).currentCode = ""
-            bot(answerCallbackQuery(cbq.id))
+            bot(AnswerCallbackQuery(cbq.id))
           case "New code" =>
             userMap(id).operationTicket = Some(tinkoff.sendAuthSMS(session, phone))
             userMap(id).currentCode = ""
-            bot(answerCallbackQuery(cbq.id, Some(resendCode)))
-          case _ => bot(answerCallbackQuery(cbq.id))
+            bot(AnswerCallbackQuery(cbq.id, Some(resendCode)))
+          case _ => bot(AnswerCallbackQuery(cbq.id))
         }
       case UserInfo(_, _, Some(session), Some(phone), _, Some(command), true, _, curPasswd) =>
         cbq.data match {
@@ -181,24 +181,24 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
               userMap(id).authorized = true
               userMap(id).reqPassword = false
               userMap(id).currentPasswd = ""
-              bot(answerCallbackQuery(cbq.id))
+              bot(AnswerCallbackQuery(cbq.id))
               executeSessionCommand(id, session, command)
               userMap(id).reqCommand = None
             }
-            else bot(answerCallbackQuery(cbq.id, Some(wrongPassword)))
+            else bot(AnswerCallbackQuery(cbq.id, Some(wrongPassword)))
           case "←" =>
             val passLen = userMap(id).currentPasswd.length
             if (passLen > 1) userMap(id).currentPasswd = curPasswd.substring(0, passLen - 1)
             else userMap(id).currentPasswd = ""
-            bot(answerCallbackQuery(cbq.id))
+            bot(AnswerCallbackQuery(cbq.id))
           case "???" =>
-            bot(answerCallbackQuery(cbq.id, Some(curPasswd)))
+            bot(AnswerCallbackQuery(cbq.id, Some(curPasswd)))
           case sym: String if sym.length == 1 =>
             userMap(id).currentPasswd = curPasswd + sym
-            bot(answerCallbackQuery(cbq.id))
-          case _ => bot(answerCallbackQuery(cbq.id))
+            bot(AnswerCallbackQuery(cbq.id))
+          case _ => bot(AnswerCallbackQuery(cbq.id))
         }
-      case _ => bot(answerCallbackQuery(cbq.id))
+      case _ => bot(AnswerCallbackQuery(cbq.id))
     }
   }
 

@@ -44,23 +44,22 @@ object TinkoffAPI {
     }
 
     override def signOut(sessionId: String): Unit = {
-      val signoutRequset = Http(URL + "sign_out").method("POST").param("origin", origin).param("sessionid", sessionId).asString
+      val signoutRequset = Http(URL + "sign_out").method("POST").params("origin" -> origin, "sessionid" -> sessionId).asString
     }
 
     override def signUp(sessionId: String, password: String): Boolean = {
-      val signupRequset = Http(URL + "sign_up").method("POST").param("origin", origin).param("sessionid", sessionId).param("password", password).asString
+      val signupRequset = Http(URL + "sign_up").method("POST").params("origin" -> origin, "sessionid" -> sessionId, "password" -> password).asString
       parse(signupRequset.body).extract[Result].resultCode == "OK"
     }
 
     override def sendAuthSMS(sessionId: String, phone: String): String = {
-      val authRequest = Http(URL + "sign_up").method("POST").param("origin", origin).param("sessionid", sessionId).param("phone", phone).asString
+      val authRequest = Http(URL + "sign_up").method("POST").params("origin" -> origin, "sessionid" -> sessionId, "phone" -> phone).asString
       parse(authRequest.body).extract[SignUp].operationTicket
     }
 
     override def confirmAuthSMS(sessionId: String, operationTicket: String, SMS: String): ConfirmResult = {
-      val confirmRequest = Http(URL + "confirm").method("POST").param("origin", origin)
-        .param("sessionid", sessionId).param("initialOperationTicket", operationTicket)
-        .param("initialOperation", "sign_up").param("confirmationData", "{\"SMSBYID\":\"" + SMS + "\"}").asString
+      val confirmRequest = Http(URL + "confirm").method("POST").params("origin" -> origin, "sessionid" -> sessionId, "initialOperationTicket" -> operationTicket,
+        "initialOperation" -> "sign_up").param("confirmationData", "{\"SMSBYID\":\"" + SMS + "\"}").asString
       val confirmResponse = parse(confirmRequest.body).extract[Result]
       if (confirmResponse.resultCode != "OK") ConfirmResult(succeed = false, needPassword = false)
       else {
@@ -70,17 +69,17 @@ object TinkoffAPI {
     }
 
     override def levelUp(sessionId: String): Unit = {
-      val levelupRequset = Http(URL + "level_up").method("POST").param("origin", origin).param("sessionid", sessionId).asString
+      val levelupRequset = Http(URL + "level_up").method("POST").params("origin" -> origin, "sessionid" -> sessionId).asString
     }
 
     override def getBalance(sessionId: String): List[Account] = {
-      val balanceRequest = Http(URL + "accounts_flat").param("origin", origin).param("sessionid", sessionId).asString
+      val balanceRequest = Http(URL + "accounts_flat").params("origin" -> origin, "sessionid" -> sessionId).asString
       parse(balanceRequest.body).extract[Accounts].payload
     }
 
     override def getHistory(sessionId: String): List[Operation] = {
       val yearAgo = (java.time.Instant.now.getEpochSecond - 31536000) * 1000
-      val historyRequest = Http(URL + "operations").param("origin", origin).param("sessionid", sessionId).param("start", yearAgo.toString).asString
+      val historyRequest = Http(URL + "operations").params("origin" -> origin, "sessionid" -> sessionId, "start" -> yearAgo.toString).asString
       parse(historyRequest.body).extract[History].payload take 10
     }
 

@@ -64,7 +64,7 @@ case class SendSticker(chatId: String,
   override def methodName = "sendSticker"
 }
 
-case class answerCallbackQuery(callback_query_id: String,
+case class AnswerCallbackQuery(callback_query_id: String,
                                text: Option[String] = None) extends SendData {
 
   override def putInto(httpRequest: HttpRequest): HttpRequest = {
