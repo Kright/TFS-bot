@@ -1,6 +1,22 @@
 ## TFS-bot
 
-**Note:**
+Бот частично повторяет функционал ИБ Тинькофф
 
-- To make it work create <i class="icon-file">TelegramBotToken</i>
-file in main directory and put the token of your bot to it.
+Список доступных команд:
+* /rates и /r – получение текущих курсов валют
+* /balance и /b – получение текущих балансов
+* /history и /hi – вывод последних 10 операций
+* /help и /h – справочник доступных функций
+* /end и /e – завершение работы с ботом
+
+**Примечание:**
+
+- Для работы бота необходимо в каталоге <i class="icon-file">/src/main/resources/</i> создать файл 
+<i class="icon-file">token.conf</i> следующего вида:
+```
+bot {
+    telegram {
+      token = "your-telegram-bot-token"
+    }
+  }
+```
