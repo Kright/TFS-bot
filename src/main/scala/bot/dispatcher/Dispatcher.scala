@@ -26,7 +26,7 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
 
   private val userMap = scala.collection.mutable.Map[Long, UserInfo]()
 
-  val text = ConfigFactory.load("text").getConfig("text") >> new Text
+  val text = ConfigFactory.load("text").getConfig("bot.messages") >> new Text
 
   val codePanel = InlineKeyboardMarkup(List(
     List("1", "2", "3"),
