@@ -8,6 +8,7 @@ import java.time.{Instant, ZoneId, ZonedDateTime}
 import scala.util.Random
 import com.typesafe.config.ConfigFactory
 import bot.Implicits.ConfigExt
+import collection.JavaConverters._
 
 /**
   * Created by lgor on 4/15/17.
@@ -26,7 +27,11 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
 
   private val userMap = scala.collection.mutable.Map[Long, UserInfo]()
 
-  val text = ConfigFactory.load("text").getConfig("bot.messages") >> new Text
+  val contentConfig = ConfigFactory.load("content").getConfig("bot")
+
+  val text = contentConfig.getConfig("messages") >> new Text
+
+  val tinkoffStickers = contentConfig.getStringList("stickers").asScala.toArray
 
   val codePanel = InlineKeyboardMarkup(List(
     List("1", "2", "3"),
@@ -53,17 +58,6 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
     List("J", "K", "L", "Z", "X", "C", "V", "B"),
     List("N", "M", "?", "~", ":", "`", "???", "↲")).
     map(_.map(InlineKeyboardButton(_)))
-  )
-
-  val tinkoffStickers = Array(
-    "CAADAgADHwAD4mVWBGkH5N3GjaEcAg", "CAADAgADIQAD4mVWBMNZdOUBQUGVAg", "CAADAgADIwAD4mVWBL8Il1dwQUbfAg",
-    "CAADAgADJQAD4mVWBOR0WdqcHOrFAg", "CAADAgADJwAD4mVWBL4nVboPg1dIAg", "CAADAgADKQAD4mVWBOkFPTz-4ptfAg",
-    "CAADAgADKwAD4mVWBODqYly9c1b8Ag", "CAADAgADLwAD4mVWBNhYiMbDJpkLAg", "CAADAgADMwAD4mVWBGGnT-DxXg8DAg",
-    "CAADAgADNQAD4mVWBFQH2EGhFfblAg", "CAADAgADNwAD4mVWBMu4LUhZqddcAg", "CAADAgADOQAD4mVWBAVtKqXTdHuEAg",
-    "CAADAgADPQAD4mVWBJJZXblXRvIYAg", "CAADAgADPwAD4mVWBKtrwHy4gQi2Ag", "CAADAgADQwAD4mVWBJoIyFM0lfHmAg",
-    "CAADAgADRQAD4mVWBH318gNULoWvAg", "CAADAgADRwAD4mVWBHOfia9HSxNZAg", "CAADAgADSQAD4mVWBGybt0Hy4BWpAg",
-    "CAADAgADSwAD4mVWBBX2FuqoIQSbAg", "CAADAgADTQAD4mVWBIsBwI9LZXIcAg", "CAADAgADTwAD4mVWBK5y37E0B1BCAg",
-    "CAADAgADUQAD4mVWBP65Nb6BFa28Ag", "CAADAgADUwAD4mVWBBV7pAwJHItRAg", "CAADAgADVQAD4mVWBGsJm_4F6J-XAg"
   )
 
   val contactRequest = ReplyKeyboardMarkup(List(List(KeyboardButton(text.shareContact, request_contact = true))))
