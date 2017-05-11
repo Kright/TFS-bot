@@ -5,8 +5,10 @@ import bot.telegram.api.{SendMessage, _}
 import bot.tinkoff._
 import java.time.format.{DateTimeFormatter, FormatStyle}
 import java.time.{Instant, ZoneId, ZonedDateTime}
-import scala.io.Source
 import scala.util.Random
+import com.typesafe.config.ConfigFactory
+import bot.Implicits.ConfigExt
+import collection.JavaConverters._
 
 /**
   * Created by lgor on 4/15/17.
@@ -23,30 +25,13 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
                       var currentCode: String = "",
                       var currentPasswd: String = "")
 
-
   private val userMap = scala.collection.mutable.Map[Long, UserInfo]()
 
-  // перевести надписи на английский и собрать в файл?
+  val contentConfig = ConfigFactory.load("content").getConfig("bot")
 
-  val contactInvite = "Для продолжения, предоставьте свой номер телефона."
+  val text = contentConfig.getConfig("messages") >> new Text
 
-  val passwordInvite = "Для дальнейшей авторизации необходимо ввести пароль."
-
-  val smsInvite = "На Ваш номер было отправлено SMS-сообщение с кодом подтверждения.\nПожалуйста, введите его."
-
-  val fiveMinReminder = "После 5 минут бездействия, Ваш сеанс авторизации был завершён"
-
-  val tenMinReminder = "После 10 минут бездействия, Ваша сессия была завершена"
-
-  val exitMessage = "Ваш сеанс работы с ботом завершён."
-
-  val wrongPassword = "Введён неверный пароль.\nПопробуйте ещё раз."
-
-  val wrongCode = "Введён неверный код подтверждения.\nПопробуйте ещё раз."
-
-  val resendCode = "Код потверждения был отправлен повторно."
-
-  val showPassword = "Чтобы увидеть введённые символы, нажмите на кнопку '???'"
+  val tinkoffStickers = contentConfig.getStringList("stickers").asScala.toArray
 
   val codePanel = InlineKeyboardMarkup(List(
     List("1", "2", "3"),
@@ -75,20 +60,7 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
     map(_.map(InlineKeyboardButton(_)))
   )
 
-  val tinkoffStickers = Array(
-    "CAADAgADHwAD4mVWBGkH5N3GjaEcAg", "CAADAgADIQAD4mVWBMNZdOUBQUGVAg", "CAADAgADIwAD4mVWBL8Il1dwQUbfAg",
-    "CAADAgADJQAD4mVWBOR0WdqcHOrFAg", "CAADAgADJwAD4mVWBL4nVboPg1dIAg", "CAADAgADKQAD4mVWBOkFPTz-4ptfAg",
-    "CAADAgADKwAD4mVWBODqYly9c1b8Ag", "CAADAgADLwAD4mVWBNhYiMbDJpkLAg", "CAADAgADMwAD4mVWBGGnT-DxXg8DAg",
-    "CAADAgADNQAD4mVWBFQH2EGhFfblAg", "CAADAgADNwAD4mVWBMu4LUhZqddcAg", "CAADAgADOQAD4mVWBAVtKqXTdHuEAg",
-    "CAADAgADPQAD4mVWBJJZXblXRvIYAg", "CAADAgADPwAD4mVWBKtrwHy4gQi2Ag", "CAADAgADQwAD4mVWBJoIyFM0lfHmAg",
-    "CAADAgADRQAD4mVWBH318gNULoWvAg", "CAADAgADRwAD4mVWBHOfia9HSxNZAg", "CAADAgADSQAD4mVWBGybt0Hy4BWpAg",
-    "CAADAgADSwAD4mVWBBX2FuqoIQSbAg", "CAADAgADTQAD4mVWBIsBwI9LZXIcAg", "CAADAgADTwAD4mVWBK5y37E0B1BCAg",
-    "CAADAgADUQAD4mVWBP65Nb6BFa28Ag", "CAADAgADUwAD4mVWBBV7pAwJHItRAg", "CAADAgADVQAD4mVWBGsJm_4F6J-XAg"
-  )
-
-  val contactRequest = ReplyKeyboardMarkup(List(List(KeyboardButton("Предоставить", request_contact = true))))
-
-  val helpText = Source.fromFile("help.txt").getLines.mkString("\n")
+  val contactRequest = ReplyKeyboardMarkup(List(List(KeyboardButton(text.shareContact, request_contact = true))))
 
   def millisToDate(millis: Long): String = {
     val instant = Instant.ofEpochMilli(millis)
@@ -111,21 +83,21 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
         executeSessionCommand(id, session, command)
       case UserInfo(_, false, Some(session), Some(phone), None, None, false, _, _) =>
         userMap(id).operationTicket = Some(tinkoff.sendAuthSMS(session, phone))
-        bot(SendMessage(id.toString, smsInvite, replyMarkup = Some(codePanel.toString)))
+        bot(SendMessage(id.toString, text.smsInvite, replyMarkup = Some(codePanel.toString)))
         userMap(id).reqCommand = Some(command)
       case UserInfo(_, false, Some(session), None, None, None, false, _, _) =>
-        bot(SendMessage(id.toString, contactInvite, replyMarkup = Some(contactRequest.toString)))
+        bot(SendMessage(id.toString, text.contactInvite, replyMarkup = Some(contactRequest.toString)))
         userMap(id).reqCommand = Some(command)
       case UserInfo(_, false, None, Some(phone), None, None, false, _, _) =>
         val session = tinkoff.initSession()
         userMap(id).sessionId = Some(session)
         userMap(id).operationTicket = Some(tinkoff.sendAuthSMS(session, phone))
-        bot(SendMessage(id.toString, smsInvite, replyMarkup = Some(codePanel.toString)))
+        bot(SendMessage(id.toString, text.smsInvite, replyMarkup = Some(codePanel.toString)))
         userMap(id).reqCommand = Some(command)
       case UserInfo(_, false, None, None, None, None, false, _, _) =>
         val session = tinkoff.initSession()
         userMap(id).sessionId = Some(session)
-        bot(SendMessage(id.toString, contactInvite, replyMarkup = Some(contactRequest.toString)))
+        bot(SendMessage(id.toString, text.contactInvite, replyMarkup = Some(contactRequest.toString)))
         userMap(id).reqCommand = Some(command)
       case _ =>
     }
@@ -142,8 +114,8 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
             if (code.length == 4) {
               tinkoff.confirmAuthSMS(session, opTicket, code) match {
                 case ConfirmResult(true, true) =>
-                  bot(SendMessage(id.toString, passwordInvite, replyMarkup = Some(passwordKeyboard1.toString)))
-                  bot(SendMessage(id.toString, showPassword, replyMarkup = Some(passwordKeyboard2.toString)))
+                  bot(SendMessage(id.toString, text.passwordInvite, replyMarkup = Some(passwordKeyboard1.toString)))
+                  bot(SendMessage(id.toString, text.showPassword, replyMarkup = Some(passwordKeyboard2.toString)))
                   userMap(id).currentCode = ""
                   userMap(id).operationTicket = None
                   userMap(id).reqPassword = true
@@ -158,7 +130,7 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
                   bot(AnswerCallbackQuery(cbq.id))
                 case _ =>
                   userMap(id).currentCode = ""
-                  bot(AnswerCallbackQuery(cbq.id, Some(wrongCode)))
+                  bot(AnswerCallbackQuery(cbq.id, Some(text.wrongCode)))
               }
             }
             else bot(AnswerCallbackQuery(cbq.id))
@@ -170,7 +142,7 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
           case "New code" =>
             userMap(id).operationTicket = Some(tinkoff.sendAuthSMS(session, phone))
             userMap(id).currentCode = ""
-            bot(AnswerCallbackQuery(cbq.id, Some(resendCode)))
+            bot(AnswerCallbackQuery(cbq.id, Some(text.resendCode)))
           case _ => bot(AnswerCallbackQuery(cbq.id))
         }
       case UserInfo(_, _, Some(session), Some(phone), _, Some(command), true, _, curPasswd) =>
@@ -185,7 +157,7 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
               executeSessionCommand(id, session, command)
               userMap(id).reqCommand = None
             }
-            else bot(AnswerCallbackQuery(cbq.id, Some(wrongPassword)))
+            else bot(AnswerCallbackQuery(cbq.id, Some(text.wrongPassword)))
           case "←" =>
             val passLen = userMap(id).currentPasswd.length
             if (passLen > 1) userMap(id).currentPasswd = curPasswd.substring(0, passLen - 1)
@@ -208,11 +180,11 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
       val timeDiff = Instant.now.getEpochSecond - userMap(id).lastMessageTime
       if ((timeDiff >= 300) && (timeDiff <= 600)) {
         endBotSession(id)
-        bot(SendMessage(id.toString, exitMessage))
+        bot(SendMessage(id.toString, text.exitMessage))
       }
       else if (timeDiff > 600) {
         endBotSession(id)
-        bot(SendMessage(id.toString, tenMinReminder))
+        bot(SendMessage(id.toString, text.tenMinReminder))
       }
       userMap(id).lastMessageTime = msg.date
     }
@@ -231,12 +203,12 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
             val phone = contact.phone_number
             userMap(id).phone = Some(phone)
             userMap(id).operationTicket = Some(tinkoff.sendAuthSMS(session, phone))
-            bot(SendMessage(id.toString, smsInvite, replyMarkup = Some(codePanel.toString)))
+            bot(SendMessage(id.toString, text.smsInvite, replyMarkup = Some(codePanel.toString)))
           case None =>
         }
       case UserInfo(_, false, Some(session), Some(phone), None, Some(command), false, _, _) =>
         userMap(id).operationTicket = Some(tinkoff.sendAuthSMS(session, phone))
-        bot(SendMessage(id.toString, smsInvite, replyMarkup = Some(codePanel.toString)))
+        bot(SendMessage(id.toString, text.smsInvite, replyMarkup = Some(codePanel.toString)))
       case _ =>
     }
 
@@ -244,10 +216,10 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
   }
 
   private def processCommand(cmd: String, msg: Message): Unit = cmd match {
-    case "/h" | "/help" | "/start" => bot(SendMessage(msg.chat.id.toString, helpText))
+    case "/h" | "/help" | "/start" => bot(SendMessage(msg.chat.id.toString, text.helpText))
     case "/b" | "/balance" => processSessionCommand(msg.chat.id, "balance")
     case "/hi" | "/history" => processSessionCommand(msg.chat.id, "history")
-    case "/e" | "/end" => endBotSession(msg.chat.id); bot(SendMessage(msg.chat.id.toString, exitMessage))
+    case "/e" | "/end" => endBotSession(msg.chat.id); bot(SendMessage(msg.chat.id.toString, text.exitMessage))
     case "/r" | "/rates" => sendRates(msg)
     case "/s" | "/sticker" => sendTinkoffSticker(msg.chat.id)
     case _ => sendCommandUnknown(cmd, msg)
@@ -303,9 +275,9 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
   }
 
   private def getFormattedHistory(accounts: List[Operation]): String = {
-    if (accounts.isEmpty) "Записей об операциях нет."
+    if (accounts.isEmpty) text.noOperations
     else {
-      val operationsList = accounts.map(x => "Дата: %s\nКатегория: %s\nОписание: %s\nСумма: %s%7.3f %3s\n".format(
+      val operationsList = accounts.map(x => text.operationsInfo.format(
         millisToDate(x.operationTime.milliseconds), x.category.name, x.description, if (x.`type` == "Credit") "+" else "-", x.amount.value, x.amount.currency.name
       ))
       "<pre>" + operationsList.mkString("\n\n") + "</pre>"

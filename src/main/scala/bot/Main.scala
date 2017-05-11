@@ -4,14 +4,15 @@ import bot.dispatcher.{Dispatcher, Sheduler}
 import bot.telegram.TelegramBot
 import bot.tinkoff.TinkoffAPI
 
-import scala.io.Source
+import com.typesafe.config.ConfigFactory
 
 /**
   * Main polling loop.
   */
 object Main extends App {
 
-  val telegram = TelegramBot(Source.fromFile("TelegramBotToken").getLines.mkString)
+  val token = ConfigFactory.load("token").getConfig("bot.telegram").getString("token")
+  val telegram = TelegramBot(token)
   val tinkoff = TinkoffAPI()
 
   val dispatcher = new Dispatcher(telegram, tinkoff)

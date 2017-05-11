@@ -6,5 +6,5 @@ target
 *.iws
 .idea
 out
-TelegramBotToken
 TelegramBotLogs.log
+src/main/resources/token.conf
