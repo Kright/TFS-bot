@@ -180,7 +180,7 @@ class Dispatcher(val bot: TelegramBot, val tinkoff: TinkoffAPI) {
       val timeDiff = Instant.now.getEpochSecond - userMap(id).lastMessageTime
       if ((timeDiff >= 300) && (timeDiff <= 600)) {
         endBotSession(id)
-        bot(SendMessage(id.toString, text.exitMessage))
+        bot(SendMessage(id.toString, text.fiveMinReminder))
       }
       else if (timeDiff > 600) {
         endBotSession(id)
